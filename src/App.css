@@ -173,12 +173,18 @@
   font-size: 13px;
   line-height: 1.4;
   align-self: flex-start;
+  text-align: start;
 }
 
 .msg.me {
   align-self: flex-end;
   background: rgba(120, 140, 255, 0.18);
   border-color: rgba(120, 140, 255, 0.35);
+}
+
+.msg.error {
+  background: rgba(255, 120, 120, 0.18);
+  border-color: rgba(255, 120, 120, 0.35);
 }
 
 /* input */

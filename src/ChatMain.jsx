@@ -1,6 +1,8 @@
 import { Suspense, useState } from "react";
 import React from "react";
 import { RoomsPanel } from "./components/RoomsPanel";
+import ChatRoom from "./components/ChatRoom";
+
 import inset_icon from "./assets/Ai.svg";
 import inset_logo from "./assets/inset.svg";
 
@@ -39,26 +41,7 @@ export default function ChatMain() {
               />
             </div>
           ) : (
-            <>
-              <div className="chatPanelHeader">
-                <span className="chatRoomName">General</span>
-              </div>
-
-              <div className="chatMessages">
-                <div className="msg">안녕!</div>
-                <div className="msg me">반가워요</div>
-              </div>
-
-              <form className="chatInputBar">
-                <input
-                  className="chatInput"
-                  placeholder="메시지를 입력하세요..."
-                />
-                <button className="sendBtn" type="submit">
-                  Send
-                </button>
-              </form>
-            </>
+            <ChatRoom key={activeRoomId} roomID={activeRoomId} />
           )}
         </main>
       </div>
