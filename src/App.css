@@ -1,7 +1,8 @@
 #root {
   max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 2rem;
   text-align: center;
 }
 
@@ -39,4 +40,219 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* layout */
+.chatApp {
+  height: 100vh;
+  /* width: 100vh; */
+  display: flex;
+  flex-direction: column;
+  background: #0b0d12;
+  color: #e9ecf1;
+}
+
+.chatHeader {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+}
+
+.chatTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+.chatBody {
+  flex: 1;
+  display: flex;
+  min-height: 0; /* 스크롤 영역 깨짐 방지 */
+}
+
+/* left rooms */
+.roomsPanel {
+  width: 160px;
+  min-width: 220px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.roomsHeader {
+  padding: 12px 14px;
+  font-size: 12px;
+  opacity: 0.8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.roomsList {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+}
+
+.roomBtn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: #e9ecf1;
+  cursor: pointer;
+  transition:
+    transform 0.06s ease,
+    background 0.15s ease,
+    border 0.15s ease;
+}
+
+.roomBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.roomBtn:active {
+  transform: scale(0.99);
+}
+
+.roomBtn.isActive {
+  background: rgba(120, 140, 255, 0.18);
+  border-color: rgba(120, 140, 255, 0.35);
+}
+
+/* right chat */
+.chatPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.chatPanelHeader {
+  height: 48px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.chatRoomName {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.chatMessages {
+  flex: 1;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+}
+
+/* message bubbles */
+.msg {
+  max-width: min(520px, 80%);
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 13px;
+  line-height: 1.4;
+  align-self: flex-start;
+}
+
+.msg.me {
+  align-self: flex-end;
+  background: rgba(120, 140, 255, 0.18);
+  border-color: rgba(120, 140, 255, 0.35);
+}
+
+/* input */
+.chatInputBar {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.chatInput {
+  flex: 1;
+  height: 40px;
+  border-radius: 12px;
+  padding: 0 12px;
+  outline: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e9ecf1;
+}
+
+.chatInput::placeholder {
+  color: rgba(233, 236, 241, 0.45);
+}
+
+.sendBtn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 140, 255, 0.35);
+  background: rgba(120, 140, 255, 0.18);
+  color: #e9ecf1;
+  cursor: pointer;
+}
+
+.sendBtn:hover {
+  background: rgba(120, 140, 255, 0.24);
+}
+
+/* responsive */
+@media (max-width: 800px) {
+  .roomsPanel {
+    width: 200px;
+  }
+}
+
+@media (max-width: 640px) {
+  .roomsPanel {
+    display: none; /* 모바일에선 사이드 숨김 (원하면 토글로 바꾸면 됨) */
+  }
+}
+
+.loader {
+  margin-top: 50px;
+}
+
+.chatLogo {
+  display: flex;
+  flex-direction: row;
+  justify-items: center;
+  align-items: center;
+  gap: 10px;
+  justify-self: center;
+  align-self: center;
+  height: 100%;
+}
+
+.chatEmptyIcon {
+  width: 50px;
+  height: auto;
+}
+
+.chatEmptyLogo {
+  width: 100px;
+  height: auto;
 }
