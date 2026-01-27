@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./App.css";
-import RoomPage from "./RoomPage.jsx";
 import ChatMain from "./ChatMain.jsx";
 
 const queryClient = new QueryClient({
