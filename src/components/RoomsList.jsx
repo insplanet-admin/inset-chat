@@ -15,7 +15,6 @@ export function RoomsList({ activeRoomId, onSelectRoom }) {
           key={room.id}
           className={`roomBtn ${room.id === activeRoomId ? "isActive" : ""}`}
           onClick={() => onSelectRoom(room.id)}
-          type="button"
         >
           {room.title}
         </button>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import ChatMessages from "./ChatMessages";
 import { useMutation } from "@tanstack/react-query";
 import { postChat } from "../api/chat";
