@@ -260,3 +260,15 @@ body {
   width: 100px;
   height: auto;
 }
+
+.roomListInput:focus {
+  outline: none;
+}
+
+.roomListInput {
+  width: 100%;
+  outline: none;
+  border: none;
+  background: transparent;
+  margin-top: 10px;
+}

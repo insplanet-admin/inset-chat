@@ -54,6 +54,7 @@ export function RoomsList({
       {isCreating && (
         <form onSubmit={onSubmit}>
           <input
+            className="roomListInput"
             placeholder="채팅방이름..."
             value={name}
             onChange={(e) => {
