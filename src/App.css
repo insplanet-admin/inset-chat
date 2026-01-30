@@ -6,6 +6,12 @@
 
 body {
   font-family: "Pretendard";
+  font-weight: 500;
+  font-size: 14px;
+}
+
+input {
+  font: inherit;
 }
 
 .logo {
@@ -101,9 +107,11 @@ body {
 
 .roomBtn {
   width: 100%;
+  height: 36px;
   text-align: left;
   margin-inline: -0.5rem;
-  padding: 0.5rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 50px;
   font-size: 14px;
   font-weight: 500;
   color: #e9ecf1;
@@ -112,10 +120,17 @@ body {
     background 0.15s ease,
     border 0.15s ease;
 }
-
+.menuitem {
+  height: 36px;
+  border: 1px solid transparent;
+  border-radius: 50px;
+  margin-inline: -0.5rem;
+  padding: 0rem 0.75rem;
+  font-weight: 500;
+}
+.menuitem:hover,
 .roomBtn:hover {
   background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .roomBtn:active {
@@ -137,18 +152,7 @@ body {
   background-color: #1b1b1f;
 }
 
-.chatPanelHeader {
-  height: 48px;
-  padding: 0 14px;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
-}
-
 .chatRoomName {
-  font-size: 13px;
-  font-weight: 600;
   opacity: 0.95;
 }
 
@@ -159,25 +163,25 @@ body {
   flex-direction: column;
   gap: 10px;
   overflow: auto;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 /* message bubbles */
 .msg {
   max-width: min(520px, 80%);
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.03);
-  font-size: 13px;
-  line-height: 1.4;
+  margin-bottom: 1rem;
+  padding: 10px 1rem;
+  border-radius: 50px;
+  line-height: 1.5;
   align-self: flex-start;
   text-align: start;
 }
 
 .msg.me {
+  margin-bottom: 0;
   align-self: flex-end;
-  background: rgba(120, 140, 255, 0.18);
-  border-color: rgba(120, 140, 255, 0.35);
+  background: #282a2c;
 }
 
 .msg.error {
@@ -187,10 +191,15 @@ body {
 
 /* input */
 .chatInputBar {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto 1rem;
+  border-radius: 100px;
   display: flex;
-  gap: 10px;
-  padding: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.15);
 }
 
@@ -200,9 +209,9 @@ body {
   border-radius: 12px;
   padding: 0 12px;
   outline: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  background-color: transparent;
   color: #e9ecf1;
+  border: 0;
 }
 
 .chatInput::placeholder {
@@ -210,13 +219,14 @@ body {
 }
 
 .sendBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
   height: 40px;
-  padding: 0 14px;
   border-radius: 12px;
-  border: 1px solid rgba(120, 140, 255, 0.35);
-  background: rgba(120, 140, 255, 0.18);
   color: #e9ecf1;
-  cursor: pointer;
+  border-radius: 50%;
 }
 
 .sendBtn:hover {

@@ -3,6 +3,7 @@ import ChatMessages from "./ChatMessages";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { postChat } from "../api/chat";
 import { fetchMessagesByRoomId, insertMessages } from "../api/messages";
+import { ArrowBigUp, MoveUp } from "lucide-react";
 
 export default function ChatRoom({ roomID }) {
   const qc = useQueryClient();
@@ -119,10 +120,6 @@ export default function ChatRoom({ roomID }) {
 
   return (
     <>
-      <div className="chatPanelHeader">
-        <span className="chatRoomName">{roomID}</span>
-      </div>
-
       <ChatMessages messages={messages} />
 
       <form className="chatInputBar" onSubmit={onSubmitAction}>
@@ -135,7 +132,7 @@ export default function ChatRoom({ roomID }) {
           }}
         />
         <button className="sendBtn" type="submit">
-          Send
+          <ArrowBigUp size={20} />
         </button>
       </form>
     </>
