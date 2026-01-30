@@ -6,7 +6,7 @@
 
 ## 작동.
 
-` npm run dev`
+`npm run dev`
 
 MSW 자동으로 실행.
 
@@ -30,7 +30,7 @@ async function enableMocking() {
 주로 FrontEnd 와 BackEnd 나눠서 작업을 시작할때 FrontEnd는 BackEnd의 결과를 기다려야 하는 상황에서 <br/>우선 api가 완성 되었다 치고 더미데이터를 api로 쏴서 마치 api로 받은 것처럼 할 때 사용.
 -> 그렇기에 꼭 dev 처리를 해야합니다.
 
-`  if (!import.meta.env.DEV) return;`
+`if (!import.meta.env.DEV) return;`
 
 ## reactQuery
 
@@ -94,7 +94,7 @@ async function enableMocking() {
   - content가 문제없이 들어왔을 때 done를 넣었으며, 결과를 받는 도중에는 pending으로 <br>loading 처리를 해줬습니다.
   - error에서는 빨간 배경으로 변경하여 잘못된 것을 알렸습니다.
 
-  ![image](https://private-user-images.githubusercontent.com/87432059/540926246-89375577-e53e-4e29-97cd-7c73aa66abe7.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Njk1MDQ1ODIsIm5iZiI6MTc2OTUwNDI4MiwicGF0aCI6Ii84NzQzMjA1OS81NDA5MjYyNDYtODkzNzU1NzctZTUzZS00ZTI5LTk3Y2QtN2M3M2FhNjZhYmU3LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjAxMjclMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwMTI3VDA4NTgwMlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTNhMjljY2QxY2UwZDc0MDVmMmZiZmRjYzhmMmUwOTEyYzhhNmNiMWRlMjc3YWI4MjdkM2U5YzU3NzQ2MTM1NDAmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.yS8bkByEE8nwjloh8IIUBEmAcVGilA3f_kRnSDn0UL0)
+  ![image](https://private-user-images.githubusercontent.com/87432059/540926246-89375577-e53e-4e29-97cd-7c73aa66abe7.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Njk1OTA4MzgsIm5iZiI6MTc2OTU5MDUzOCwicGF0aCI6Ii84NzQzMjA1OS81NDA5MjYyNDYtODkzNzU1NzctZTUzZS00ZTI5LTk3Y2QtN2M3M2FhNjZhYmU3LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjAxMjglMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwMTI4VDA4NTUzOFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTljZTYyZTk4NTQ2N2MwMDU5MmFlYjk3ZjQ3M2Y1ZjQwMmU2ZTMxZWM0OTFhZDkxMTU1OWIwZmM0ZjZjNzc4ZWQmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.UncV86HIGgCHROb-UxLGxUHeppjzf5-k_stQ-X4Czfo)
 
 ### AI의 경우
 
