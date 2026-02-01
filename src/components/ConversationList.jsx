@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { createRooms, fetchRooms } from "../api/rooms.js";
 
-export function RoomsList({
+function ConversationList({
   activeRoomId,
   onSelectRoom,
   isCreating,
@@ -74,3 +74,5 @@ export function RoomsList({
     </div>
   );
 }
+
+export default ConversationList;

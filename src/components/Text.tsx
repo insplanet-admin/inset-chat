@@ -22,16 +22,16 @@ type TextProps = {
 
 const variantStyleMap: Record<TextVariant, CSSProperties> = {
   body: {
-    fontSize: "14px",
-    lineHeight: 1.5,
+    fontSize: "16px",
+    // lineHeight: 1.5,
   },
   bodyBold: {
-    fontSize: "14px",
-    lineHeight: 1.5,
+    fontSize: "16px",
+    // lineHeight: 1.5,
   },
   label: {
-    fontSize: "14px",
-    lineHeight: 1.5,
+    fontSize: "16px",
+    // lineHeight: 1.5,
   },
   caption: {
     fontSize: "12px",
@@ -40,7 +40,7 @@ const variantStyleMap: Record<TextVariant, CSSProperties> = {
   title: {
     fontSize: "20px",
     fontWeight: 600,
-    lineHeight: 1.3,
+    // lineHeight: 1.3,
   },
   subtitle: {
     fontSize: "16px",

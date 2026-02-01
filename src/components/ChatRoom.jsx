@@ -3,7 +3,8 @@ import ChatMessages from "./ChatMessages";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { postChat } from "../api/chat";
 import { fetchMessagesByRoomId, insertMessages } from "../api/messages";
-import { ArrowBigUp, MoveUp } from "lucide-react";
+import PromptInput from "./prompt/PromptInput";
+import { FilePen } from "lucide-react";
 
 export default function ChatRoom({ roomID }) {
   const qc = useQueryClient();
@@ -87,9 +88,7 @@ export default function ChatRoom({ roomID }) {
     },
   });
 
-  const onSubmitAction = (e) => {
-    e.preventDefault();
-
+  const handleSubmit = (e) => {
     setMessages((prev) => [...prev, { role: false, content: message }]);
 
     insertMutation.mutate({
@@ -120,21 +119,21 @@ export default function ChatRoom({ roomID }) {
 
   return (
     <>
-      <ChatMessages messages={messages} />
-
-      <form className="chatInputBar" onSubmit={onSubmitAction}>
-        <input
-          className="chatInput"
-          placeholder="메시지를 입력하세요..."
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value);
-          }}
-        />
-        <button className="sendBtn" type="submit">
-          <ArrowBigUp size={20} />
+      <div className="chatPanelHeader">
+        <span style={{ flex: 1, textAlign: "center" }}>Chat name</span>
+        <button className="iconButton" style={{ marginLeft: "auto" }}>
+          <FilePen size={20} />
         </button>
-      </form>
+      </div>
+      {/* <div className="chatPanelHeader">{roomID}</div> */}
+      <ChatMessages messages={messages} />
+      <PromptInput
+        value={message}
+        setMessage={(e) => {
+          setMessage(e.target.value);
+        }}
+        onSubmit={handleSubmit}
+      />
     </>
   );
 }
