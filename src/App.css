@@ -216,7 +216,16 @@ input {
 
 .promptInputContainer {
   position: sticky;
-  bottom: var(--chat-spacing);
+  bottom: 0;
+}
+.promptInputContainer::before {
+  position: absolute;
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 1),
+    rgba(255, 255, 255, 0)
+  );
 }
 
 .promptInput {
@@ -241,7 +250,8 @@ input {
   max-width: var(--chat-width);
   margin: 0 auto;
   gap: 0.5rem;
-  padding-bottom: 1rem;
+  padding-block: 1rem;
+  background: #fff;
 }
 
 .suggestion {
@@ -302,27 +312,6 @@ input {
 
 .loader {
   margin-top: 50px;
-}
-
-.chatLogo {
-  display: flex;
-  flex-direction: row;
-  justify-items: center;
-  align-items: center;
-  gap: 10px;
-  justify-self: center;
-  align-self: center;
-  height: 100%;
-}
-
-.chatEmptyIcon {
-  width: 50px;
-  height: auto;
-}
-
-.chatEmptyLogo {
-  width: 100px;
-  height: auto;
 }
 
 .roomListInput:focus {

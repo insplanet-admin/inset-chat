@@ -41,23 +41,13 @@ function RoomsErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
-function ConversationArea({
-  activeRoomId,
-  setActiveRoomId,
-  isCreating,
-  closeCreating,
-}) {
+function ConversationArea() {
   return (
     <QueryErrorResetBoundary>
       {({ reset }) => (
         <ErrorBoundary onReset={reset} FallbackComponent={RoomsErrorFallback}>
           <Suspense fallback={<RoomsSkeleton />}>
-            <ConversationList
-              activeRoomId={activeRoomId}
-              onSelectRoom={setActiveRoomId}
-              isCreating={isCreating}
-              closeCreating={closeCreating}
-            />
+            <ConversationList />
           </Suspense>
         </ErrorBoundary>
       )}

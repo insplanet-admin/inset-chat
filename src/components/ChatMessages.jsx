@@ -10,8 +10,9 @@ const override = {
 export default function ChatMessages({ messages }) {
   return (
     <div className="chatMessages">
-      {messages.map((mes) => (
+      {messages.map((mes, index) => (
         <div
+          key={index}
           className={`msg ${mes.role == false && "me"} ${mes.status == "error" && "error"}`}
         >
           {mes.status === "pending" ? (

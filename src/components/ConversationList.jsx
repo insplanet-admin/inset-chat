@@ -1,17 +1,16 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useMutation,
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { createRooms, fetchRooms } from "../api/rooms.js";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-function ConversationList({
-  activeRoomId,
-  onSelectRoom,
-  isCreating,
-  closeCreating,
-}) {
+function ConversationList({ onSelectRoom }) {
+  const navigate = useNavigate();
+  const { id: activeRoomId } = useParams();
+
   const qc = useQueryClient();
 
   const { data: rooms } = useSuspenseQuery({
@@ -25,7 +24,7 @@ function ConversationList({
     onSuccess: (newRoom) => {
       qc.invalidateQueries({ queryKey: ["rooms"] });
 
-      closeCreating();
+      // closeIsCreating();
       setName("");
 
       onSelectRoom?.(newRoom.id);
@@ -43,34 +42,42 @@ function ConversationList({
   return (
     <div className="roomsList">
       {rooms.map((room) => (
-        <button
+        // <button
+        //   key={room.id}
+        //   className={`roomBtn ${room.id === activeRoomId ? "isActive" : ""}`}
+        //   onClick={() => () => navigate(`/${room.id}`)}
+        // >
+        //   {room.name}
+        // </button>
+        <Link
           key={room.id}
           className={`roomBtn ${room.id === activeRoomId ? "isActive" : ""}`}
-          onClick={() => onSelectRoom(room.id)}
+          to={`/${room.id}`}
         >
           {room.name}
-        </button>
+        </Link>
       ))}
-      {isCreating && (
-        <form onSubmit={handleSubmit}>
-          <input
-            className="roomListInput"
-            placeholder="채팅방이름..."
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-            }}
-            autoFocus
-            disabled={createMutation.isPending}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                closeCreating();
-                setName("");
-              }
-            }}
-          />
-        </form>
-      )}
+
+      {/* {isCreating && ( */}
+      <form onSubmit={handleSubmit}>
+        <input
+          className="roomListInput"
+          placeholder="채팅방이름..."
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+          autoFocus
+          disabled={createMutation.isPending}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              // closeIsCreating();
+              setName("");
+            }
+          }}
+        />
+      </form>
+      {/* )} */}
     </div>
   );
 }

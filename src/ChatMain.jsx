@@ -1,8 +1,5 @@
-import { Suspense, useState } from "react";
 import ChatRoom from "./components/ChatRoom";
 
-import inset_icon from "./assets/Ai.svg";
-import inset_logo from "./assets/inset.svg";
 import MenuItem from "./components/MenuItem";
 import Text from "./components/Text";
 import { FilePen, Menu, Search } from "lucide-react";
@@ -11,8 +8,6 @@ import Row from "./components/Row";
 import ConversationArea from "./components/ConversationArea";
 
 export default function ChatMain() {
-  const [activeRoomId, setActiveRoomId] = useState(null);
-  const [isCreating, setIsCreating] = useState(false);
   return (
     <div className="chatApp">
       <aside className="sidebar">
@@ -31,12 +26,7 @@ export default function ChatMain() {
         </div>
         <Spacer size={4} />
         <Spacer size={4} />
-        <MenuItem
-          icon={<FilePen size={16} />}
-          onClick={() => {
-            setIsCreating(true);
-          }}
-        >
+        <MenuItem icon={<FilePen size={16} />} onClick={() => {}}>
           새 채팅
         </MenuItem>
         <Spacer size={4} />
@@ -46,23 +36,11 @@ export default function ChatMain() {
           </Text>
         </div>
         <Spacer size={1} />
-        <ConversationArea
-          activeRoomId={activeRoomId}
-          setActiveRoomId={setActiveRoomId}
-          isCreating={isCreating}
-          closeCreating={() => setIsCreating(false)}
-        />
+        <ConversationArea />
       </aside>
 
       <main className="chatPanel">
-        {!activeRoomId ? (
-          <div className="chatLogo">
-            <img className="chatEmptyIcon" src={inset_icon} alt="Inset icon" />
-            <img className="chatEmptyLogo" src={inset_logo} alt="Inset logo" />
-          </div>
-        ) : (
-          <ChatRoom key={activeRoomId} roomID={activeRoomId} />
-        )}
+        <ChatRoom />
       </main>
     </div>
   );

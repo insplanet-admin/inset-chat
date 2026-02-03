@@ -5,8 +5,10 @@ import { postChat } from "../api/chat";
 import { fetchMessagesByRoomId, insertMessages } from "../api/messages";
 import PromptInput from "./prompt/PromptInput";
 import { FilePen } from "lucide-react";
+import { useParams } from "react-router-dom";
 
-export default function ChatRoom({ roomID }) {
+export default function ChatRoom() {
+  const { id: roomID } = useParams();
   const qc = useQueryClient();
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");

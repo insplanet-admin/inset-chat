@@ -2,6 +2,7 @@ import ReactDOM from "react-dom/client";
 import React from "react";
 import "./index.css";
 import App from "./App.jsx";
+import { BrowserRouter } from "react-router-dom";
 
 async function enableMocking() {
   if (!import.meta.env.DEV) return;
@@ -17,7 +18,9 @@ async function enableMocking() {
 enableMocking().then(() => {
   ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </React.StrictMode>,
   );
 });
