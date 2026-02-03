@@ -5,9 +5,10 @@ interface Props {
   value: string;
   setMessage: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLFormElement>) => void;
 }
 
-const PromptInput = ({ value, setMessage, onSubmit }: Props) => {
+const PromptInput = ({ value, setMessage, onSubmit, onKeyDown }: Props) => {
   return (
     <div className="promptInputContainer">
       <Suggestions>
@@ -19,7 +20,7 @@ const PromptInput = ({ value, setMessage, onSubmit }: Props) => {
           <Suggestion key={suggestion}>{suggestion}</Suggestion>
         ))}
       </Suggestions>
-      <form className="promptInput" onSubmit={onSubmit}>
+      <form className="promptInput" onSubmit={onSubmit} onKeyDown={onKeyDown}>
         <PromptInputTextarea value={value} setMessage={setMessage} />
         <Row justify="space-between">
           <PromptInputTools />

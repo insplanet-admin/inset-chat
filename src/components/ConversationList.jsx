@@ -32,7 +32,7 @@ function ConversationList({
     },
   });
 
-  const onSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const v = name.trim();
     if (!v) return;
@@ -52,7 +52,7 @@ function ConversationList({
         </button>
       ))}
       {isCreating && (
-        <form onSubmit={onSubmit}>
+        <form onSubmit={handleSubmit}>
           <input
             className="roomListInput"
             placeholder="채팅방이름..."

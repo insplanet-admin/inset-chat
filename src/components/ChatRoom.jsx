@@ -89,6 +89,7 @@ export default function ChatRoom({ roomID }) {
   });
 
   const handleSubmit = (e) => {
+    e.preventDefault();
     setMessages((prev) => [...prev, { role: false, content: message }]);
 
     insertMutation.mutate({
@@ -117,6 +118,14 @@ export default function ChatRoom({ roomID }) {
     }
   };
 
+  // textarea에서 Enter키만 눌렀을 때 전송되도록 처리
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSubmit(event);
+    }
+  };
+
   return (
     <>
       <div className="chatPanelHeader">
@@ -133,6 +142,7 @@ export default function ChatRoom({ roomID }) {
           setMessage(e.target.value);
         }}
         onSubmit={handleSubmit}
+        onKeyDown={handleKeyDown}
       />
     </>
   );
