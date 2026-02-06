@@ -3,8 +3,12 @@ import ChatMessages from "./ChatMessages";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { postChat } from "../api/chat";
 import { fetchMessagesByRoomId, insertMessages } from "../api/messages";
+import PromptInput from "./prompt/PromptInput";
+import { FilePen } from "lucide-react";
+import { useParams } from "react-router-dom";
 
-export default function ChatRoom({ roomID }) {
+export default function ChatRoom() {
+  const { id: roomID } = useParams();
   const qc = useQueryClient();
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
@@ -86,9 +90,8 @@ export default function ChatRoom({ roomID }) {
     },
   });
 
-  const onSubmitAction = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
     setMessages((prev) => [...prev, { role: false, content: message }]);
 
     insertMutation.mutate({
@@ -117,27 +120,32 @@ export default function ChatRoom({ roomID }) {
     }
   };
 
+  // textarea에서 Enter키만 눌렀을 때 전송되도록 처리
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSubmit(event);
+    }
+  };
+
   return (
     <>
       <div className="chatPanelHeader">
-        <span className="chatRoomName">{roomID}</span>
-      </div>
-
-      <ChatMessages messages={messages} />
-
-      <form className="chatInputBar" onSubmit={onSubmitAction}>
-        <input
-          className="chatInput"
-          placeholder="메시지를 입력하세요..."
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value);
-          }}
-        />
-        <button className="sendBtn" type="submit">
-          Send
+        <span style={{ flex: 1, textAlign: "center" }}>Chat name</span>
+        <button className="iconButton" style={{ marginLeft: "auto" }}>
+          <FilePen size={20} />
         </button>
-      </form>
+      </div>
+      {/* <div className="chatPanelHeader">{roomID}</div> */}
+      <ChatMessages messages={messages} />
+      <PromptInput
+        value={message}
+        setMessage={(e) => {
+          setMessage(e.target.value);
+        }}
+        onSubmit={handleSubmit}
+        onKeyDown={handleKeyDown}
+      />
     </>
   );
 }

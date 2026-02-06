@@ -9,7 +9,11 @@ interface Props {
 
 const MenuItem = ({ icon, children, onClick }: Props) => {
   return (
-    <button onClick={onClick} style={{ width: "100%", textAlign: "left" }}>
+    <button
+      className="menuitem"
+      onClick={onClick}
+      style={{ width: "100%", textAlign: "left" }}
+    >
       <Row align="center" gap=".5rem" style={{ height: "32px" }}>
         {icon}
         <Text variant="bodyBold">{children}</Text>

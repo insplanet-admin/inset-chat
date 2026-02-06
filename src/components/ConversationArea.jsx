@@ -1,8 +1,8 @@
-import React, { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
-import { RoomsList } from "./RoomsList.jsx";
 import { SyncLoader } from "react-spinners";
+import ConversationList from "./ConversationList";
 
 const override = {
   display: "block",
@@ -41,26 +41,18 @@ function RoomsErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
-export function RoomsPanel({
-  activeRoomId,
-  setActiveRoomId,
-  isCreating,
-  closeCreating,
-}) {
+function ConversationArea() {
   return (
     <QueryErrorResetBoundary>
       {({ reset }) => (
         <ErrorBoundary onReset={reset} FallbackComponent={RoomsErrorFallback}>
           <Suspense fallback={<RoomsSkeleton />}>
-            <RoomsList
-              activeRoomId={activeRoomId}
-              onSelectRoom={setActiveRoomId}
-              isCreating={isCreating}
-              closeCreating={closeCreating}
-            />
+            <ConversationList />
           </Suspense>
         </ErrorBoundary>
       )}
     </QueryErrorResetBoundary>
   );
 }
+
+export default ConversationArea;

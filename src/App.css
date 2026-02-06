@@ -2,10 +2,37 @@
 
 #root {
   width: 100%;
+
+  --size-medium: 40px;
+
+  --color-primary: #000;
+  --color-background: #fff;
+
+  --border: 1px solid #eee;
+
+  --shadow: 0 1px 2px 0 #0000000d;
+
+  --chat-spacing: 1rem;
+
+  --grid-margin: 1rem;
+
+  --sidebar-width: 240px;
+  --chat-width: 720px;
 }
 
 body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
   font-family: "Pretendard";
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+input {
+  font: inherit;
 }
 
 .logo {
@@ -50,8 +77,6 @@ body {
   /* width: 100vh; */
   display: flex;
   flex-direction: column;
-  background: #0b0d12;
-  color: #e9ecf1;
 }
 
 .chatHeader {
@@ -66,23 +91,22 @@ body {
   letter-spacing: 0.2px;
 }
 
-.chatBody {
-  flex: 1;
-  display: flex;
-  min-height: 0; /* 스크롤 영역 깨짐 방지 */
-}
-
 /* left rooms */
-.roomsPanel {
-  width: 160px;
-  min-width: 220px;
+.sidebar {
+  width: var(--sidebar-width);
   padding: 1rem;
-  background: #161618;
+  box-sizing: border-box;
+  /* background: #161618; */
 
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   min-height: 0;
+
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
 }
 
 .roomsHeader {
@@ -101,21 +125,26 @@ body {
 
 .roomBtn {
   width: 100%;
+  height: var(--size-medium);
   text-align: left;
-  margin-inline: -0.5rem;
-  padding: 0.5rem 0.5rem;
-  font-size: 14px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 50px;
   font-weight: 500;
-  color: #e9ecf1;
   transition:
     transform 0.06s ease,
     background 0.15s ease,
     border 0.15s ease;
 }
-
+.menuitem {
+  height: var(--size-medium);
+  border: 1px solid transparent;
+  border-radius: 50px;
+  padding: 0rem 0.75rem;
+  font-weight: 500;
+}
+.menuitem:hover,
 .roomBtn:hover {
   background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .roomBtn:active {
@@ -134,50 +163,50 @@ body {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background-color: #1b1b1f;
+  padding-left: var(--sidebar-width);
+  /* background-color: #1b1b1f; */
 }
 
 .chatPanelHeader {
-  height: 48px;
-  padding: 0 14px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.chatRoomName {
-  font-size: 13px;
+  justify-content: center;
+  background-color: var(--color-background);
+  /* // 왜 min */
+  min-height: 56px;
+  padding: 0 1.5rem;
   font-weight: 600;
-  opacity: 0.95;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  position: sticky;
+  top: 0;
 }
 
 .chatMessages {
   flex: 1;
-  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow: auto;
+  max-width: var(--chat-width);
+  margin: 0 auto var(--chat-spacing);
+  padding: 1rem var(--grid-margin);
+  box-sizing: border-box;
 }
 
 /* message bubbles */
 .msg {
   max-width: min(520px, 80%);
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.03);
-  font-size: 13px;
-  line-height: 1.4;
+  margin-bottom: 1rem;
+  border-radius: 50px;
   align-self: flex-start;
   text-align: start;
 }
 
 .msg.me {
+  padding: 0.5rem 1rem;
+  margin-bottom: 0;
   align-self: flex-end;
-  background: rgba(120, 140, 255, 0.18);
-  border-color: rgba(120, 140, 255, 0.35);
+  background: #e9e9e9;
 }
 
 .msg.error {
@@ -185,80 +214,104 @@ body {
   border-color: rgba(255, 120, 120, 0.35);
 }
 
-/* input */
-.chatInputBar {
-  display: flex;
-  gap: 10px;
-  padding: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.15);
+.promptInputContainer {
+  position: sticky;
+  bottom: 0;
+}
+.promptInputContainer::before {
+  position: absolute;
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 1),
+    rgba(255, 255, 255, 0)
+  );
 }
 
-.chatInput {
+.promptInput {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--chat-width);
+  margin: 0 auto 1rem;
+  border-radius: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 1rem;
+  box-sizing: border-box;
+  background-color: #fff;
+  border: var(--border);
+  box-shadow: var(--shadow);
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: var(--chat-width);
+  margin: 0 auto;
+  gap: 0.5rem;
+  padding-block: 1rem;
+  background: #fff;
+}
+
+.suggestion {
+  padding: 0.75rem 1rem;
+  border-radius: 50px;
+  background-color: var(--color-background);
+  border: var(--border);
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.075);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.promptInputTextarea {
   flex: 1;
   height: 40px;
-  border-radius: 12px;
-  padding: 0 12px;
   outline: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: #e9ecf1;
+  background-color: transparent;
+  border: 0;
+  resize: none;
+  font: inherit;
 }
 
 .chatInput::placeholder {
   color: rgba(233, 236, 241, 0.45);
 }
-
-.sendBtn {
-  height: 40px;
-  padding: 0 14px;
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border-radius: 12px;
-  border: 1px solid rgba(120, 140, 255, 0.35);
-  background: rgba(120, 140, 255, 0.18);
-  color: #e9ecf1;
+  border: none;
+  background: transparent;
   cursor: pointer;
 }
-
-.sendBtn:hover {
-  background: rgba(120, 140, 255, 0.24);
+.sendBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background-color: var(--color-primary);
+  color: #fff;
+  border-radius: 50%;
 }
 
 /* responsive */
 @media (max-width: 800px) {
-  .roomsPanel {
-    width: 200px;
+  .sidebar {
+    display: none;
   }
-}
-
-@media (max-width: 640px) {
-  .roomsPanel {
-    display: none; /* 모바일에선 사이드 숨김 (원하면 토글로 바꾸면 됨) */
+  .chatPanel {
+    padding-left: 0;
   }
 }
 
 .loader {
   margin-top: 50px;
-}
-
-.chatLogo {
-  display: flex;
-  flex-direction: row;
-  justify-items: center;
-  align-items: center;
-  gap: 10px;
-  justify-self: center;
-  align-self: center;
-  height: 100%;
-}
-
-.chatEmptyIcon {
-  width: 50px;
-  height: auto;
-}
-
-.chatEmptyLogo {
-  width: 100px;
-  height: auto;
 }
 
 .roomListInput:focus {
