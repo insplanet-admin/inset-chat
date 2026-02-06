@@ -6,6 +6,7 @@ import { fetchMessagesByRoomId, insertMessages } from "../api/messages";
 import PromptInput from "./prompt/PromptInput";
 import { FilePen } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { nanoid } from "nanoid";
 
 export default function ChatRoom() {
   const { id: roomID } = useParams();
@@ -102,7 +103,9 @@ export default function ChatRoom() {
     setMessage("");
 
     if (roomID == 4) {
-      const id = crypto.randomUUID();
+      // UUID를 사용할때 기본 함수 -> crypto.randomUUID()를 사용하는데 type에러가 있어서
+      // nanoid라는 라이브러리를 사용.
+      const id = nanoid();
 
       console.log(id);
 
@@ -124,7 +127,8 @@ export default function ChatRoom() {
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      handleSubmit(event);
+      // Enter를 누르면 OnSubmit / onKeyDown 두 이벤트가 함께 호출이 되어서 handleSubmit이 두번 되어버림.
+      // handleSubmit(event);
     }
   };
 
