@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import ChatMessages from "./ChatMessages";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { postChat } from "../api/chat";
 import { fetchMessagesByRoomId, insertMessages } from "../api/messages";
 import PromptInput from "./prompt/PromptInput";
 import { FilePen } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { nanoid } from "nanoid";
+import { parseAndSaveResume, postChatWithSupabase } from "../TestFetch";
 
 export default function ChatRoom() {
   const { id: roomID } = useParams();
@@ -55,11 +55,14 @@ export default function ChatRoom() {
   });
 
   const chatMutation = useMutation({
-    mutationFn: postChat,
+    mutationFn: postChatWithSupabase,
     onSuccess: (data, variables) => {
       const id = variables.id;
       const text = data?.text ?? "";
       if (!text) return;
+
+      // 이걸로 화면 구성하면 될 듯 합니다.
+      // console.log(JSON.parse(text));
 
       setMessages((prev) =>
         prev.map((m) =>
@@ -75,7 +78,7 @@ export default function ChatRoom() {
     },
     onError: (err, variables) => {
       const id = variables.id;
-
+      console.log(err);
       setMessages((prev) =>
         prev.map((m) =>
           m.id == id
@@ -95,6 +98,7 @@ export default function ChatRoom() {
     e.preventDefault();
     setMessages((prev) => [...prev, { role: false, content: message }]);
 
+    console.log("handleSubmit");
     insertMutation.mutate({
       content: message,
       roomId: roomID,
@@ -106,8 +110,6 @@ export default function ChatRoom() {
       // UUID를 사용할때 기본 함수 -> crypto.randomUUID()를 사용하는데 type에러가 있어서
       // nanoid라는 라이브러리를 사용.
       const id = nanoid();
-
-      console.log(id);
 
       setMessages((prev) => [
         ...prev,
@@ -125,10 +127,70 @@ export default function ChatRoom() {
 
   // textarea에서 Enter키만 눌렀을 때 전송되도록 처리
   const handleKeyDown = (event) => {
+    // 한글 조합시 enter 두번 눌림 방지
+    if (event.nativeEvent.isComposing) return;
+
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      // Enter를 누르면 OnSubmit / onKeyDown 두 이벤트가 함께 호출이 되어서 handleSubmit이 두번 되어버림.
-      // handleSubmit(event);
+
+      handleSubmit(event);
+    }
+  };
+
+  const handleFileDrop = async (file) => {
+    console.log("파일이 드롭되었습니다:", file.name);
+    const userMessageId = nanoid();
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: userMessageId,
+        role: true,
+        content: "",
+        status: "pending",
+      },
+    ]);
+
+    try {
+      // 3. [Logic] 실제 AI 분석 및 DB 저장 요청 (비동기)
+      // api.ts에서 만든 parseAndSaveResume 함수 호출
+      const savedData = await parseAndSaveResume(file);
+
+      // 저장된 데이터에서 이름 꺼내기 (배열로 반환되므로 첫 번째 요소)
+      const candidateName =
+        savedData && savedData[0] ? savedData[0].name : "지원자";
+
+      // 4. [UI] 성공 시 봇 메시지 업데이트 (Pending -> Done)
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id == userMessageId
+            ? {
+                ...msg,
+                content: ` 분석 완료! '${candidateName}'님의 정보를 DB에 저장했습니다.`,
+                status: "done",
+              }
+            : msg,
+        ),
+      );
+
+      // (선택사항) 만약 채팅 로그도 DB에 저장해야 한다면 여기서 insertMutation 실행
+      // insertMutation.mutate({ content: "파일 분석 완료...", ... })
+    } catch (error) {
+      console.error(error);
+
+      // 5. [UI] 실패 시 봇 메시지 업데이트 (Pending -> Error)
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id == userMessageId
+            ? {
+                ...msg,
+                content:
+                  " 이력서 분석에 실패했습니다. 파일 형식을 확인해주세요.",
+                status: "error",
+              }
+            : msg,
+        ),
+      );
     }
   };
 
@@ -149,6 +211,7 @@ export default function ChatRoom() {
         }}
         onSubmit={handleSubmit}
         onKeyDown={handleKeyDown}
+        onFileDrop={handleFileDrop}
       />
     </>
   );
