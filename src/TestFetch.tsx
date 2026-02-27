@@ -1,14 +1,15 @@
-import { supabase, model } from "./utils";
+import { supabase, genAI } from "./utils";
 
 interface Candidate {
   name: string;
-  skill: string[] | null;
+  skill: string | null;
   summary: string | null;
   email: string | null;
   phoneNumber: string | null;
 }
 
 interface PostChatParams {
+  id: string;
   message: string;
 }
 
@@ -20,67 +21,78 @@ export async function postChatWithSupabase({
   message,
 }: PostChatParams): Promise<ChatResponse> {
   try {
-    const { data, error } = await supabase
-      .from("User")
-      .select("name, skill, summary, email, phoneNumber");
+    // 1. 사용자 질문(message)을 벡터로 변환 (이력서 저장 시 사용한 모델과 동일해야 함)
+    const embedResponse = await genAI.models.embedContent({
+     model: "gemini-embedding-001",
+      contents: message,
+    });
+    const queryVector = embedResponse.embeddings[0].values;
+
+    // 2. Supabase RPC(match_users) 호출하여 유사한 후보자만 1차 필터링
+    const { data: matchedCandidates, error } = await supabase.rpc(
+      "match_users",
+      {
+        query_embedding: queryVector,
+        match_threshold: 0.5, // 최소 일치율 (데이터에 따라 0.3 ~ 0.7 사이로 조정)
+        match_count: 3,       // LLM에게 넘길 최대 후보자 수 (예: 상위 5명)
+      }
+    );
 
     if (error) {
-      throw new Error(error.message);
+      throw new Error(`Vector Search Error: ${error.message}`);
     }
 
-    const allCandidates = data as Candidate[];
+    // 3. 조건에 맞는 후보자가 없을 경우 빠른 처리 (LLM 호출 비용 절약)
+    if (!matchedCandidates || matchedCandidates.length === 0) {
+      return { text: "[]" }; // 또는 "조건에 맞는 후보자가 없습니다." 등 상황에 맞게 처리
+    }
 
-    const prompt = `
-    [Role Definition]
-      You are an **Expert Technical Recruiter** with deep knowledge of software engineering stacks.
-      At the same time, you are a **JSON Generator** that outputs data strictly in JSON format.
+    // 4. 추려진 후보자를 바탕으로 Gemini에게 최종 분석 및 '이유(reason)' 작성 요청
+const prompt = `
+      [Role Definition]
+      You are an **Extremely Strict Technical Recruiter**. You output data STRICTLY in JSON format.
 
       [Task Description]
-      1. Analyze the [User Query] to understand the underlying technical requirements.
-         - Example: If user asks for "AI Developer", look for "Python", "TensorFlow", "PyTorch", "NLP", etc., even if the exact word "AI" is missing.
-         - Example: If user asks for "Frontend", look for "React", "Vue", "JavaScript", "HTML/CSS".
-      2. Review the [Candidates List] and find the best matches based on your technical inference.
-      3. **Construct a specific "reason" in Korean.** Explain *why* this candidate fits the vague query based on their specific skills.
+      1. Analyze the [User Query] to understand the exact technical requirements and role.
+      2. Review the [Matched Candidates List].
+      3. **STRICT FILTERING (CRITICAL):** - ONLY select candidates who are a **STRONG MATCH** for the user's query.
+         - If a candidate's skills do not strongly align with the requested role (e.g., HR skills for a Developer role), **DROP THEM IMMEDIATELY**.
+         - **Do NOT force a match.** It is much better to return an empty array [] than to recommend an irrelevant candidate.
+      4. For the truly matched candidates, construct a specific "reason" in Korean.
       
       [User Query]
       "${message}"
 
-      [Candidates List]
-      ${JSON.stringify(allCandidates)}
+      [Matched Candidates List]
+      ${JSON.stringify(matchedCandidates)}
 
-      [Output Constraint - VERY IMPORTANT]
-      - You must output **ONLY a JSON Array**.
-      - Do not include any conversational text (e.g., "Here is the list...").
-      - Do not use Markdown code blocks (like \`\`\`json). Just the raw JSON array.
-      - Each object in the array must contain: "name", "skill", "summary", "email", "phoneNumber", and "reason".
-
-      [Example JSON Structure]
-      [
-        {
-          "name": "홍길동",
-          "skill": ["Python", "Django", "PyTorch"],
-          "summary": "...",
-          "email": "...",
-          "phoneNumber": "...",
-          "reason": "사용자가 AI 개발자를 요청했는데, 이 지원자는 PyTorch를 이용한 딥러닝 프로젝트 경험이 있어 적합합니다."
-        }
-      ]
+      [Output Constraint]
+      - Return ONLY a JSON Array.
+      - If NO candidates are a strong match, return exactly: []
+      - Each object must contain: "name", "skill", "summary", "email", "phoneNumber", and "reason".
     `;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    // 5. 이전 단계에서 적용했던 JSON 강제 모드 사용
+    const result = await genAI.models.generateContent({
+      model: import.meta.env.VITE_GEMINI_MODEL, // (주의: 실제 운영시엔 백엔드 환경변수 권장)
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json", 
+      }
+    });
 
-    return { text: responseText };
+    console.log(result.text)
+
+    return { text: result.text };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "알 수 없는 오류";
-    console.error("AI processing error:", errorMessage);
+    const errorMessage = error instanceof Error ? error.message : "알 수 없는 오류";
+    console.error("AI Vector Search error:", errorMessage);
 
-    throw new Error("AI 처리 중 오류가 발생했습니다.");
+    throw new Error("AI 처리 및 벡터 검색 중 오류가 발생했습니다.");
   }
 }
 
-// 1. 파일을 Gemini가 이해하는 Base64로 변환하는 헬퍼 함수
+/**  파일을 Gemini가 이해하는 Base64로 변환하는 헬퍼 함수 */
 async function fileToGenerativePart(file: File) {
   return new Promise<{ inlineData: { data: string; mimeType: string } }>(
     (resolve, reject) => {
@@ -100,13 +112,11 @@ async function fileToGenerativePart(file: File) {
   );
 }
 
-// 2. 이력서 파싱 및 DB 저장 함수
+/** 이력서 파싱 및 DB 저장 함수 */
 export async function parseAndSaveResume(file: File) {
   try {
-    // A. 파일을 Base64로 변환
     const filePart = await fileToGenerativePart(file);
 
-    // B. 프롬프트 작성 (엄격한 JSON 스키마 요구)
     const prompt = `
       [Role]
       You are a Resume Parser. Your job is to extract structured data from the provided resume file.
@@ -114,45 +124,59 @@ export async function parseAndSaveResume(file: File) {
       [Target Columns]
       Extract information into the following JSON keys strictly:
       - name: (string) Candidate's name.
-      - skill: (array of strings) Technical skills (e.g., ["React", "Python"]).
-      - summary: (string) A brief professional summary (1-2 sentences).
+      - skill: (string) Technical skills and tools separated by commas. 
+        **CRITICAL INSTRUCTION FOR SKILLS: If the resume lists certifications (e.g., "컴퓨터활용능력 1급", "정보처리기사", "워드프로세서"), DO NOT just write the certification name. You MUST INFER and list the actual software/tools associated with it (e.g., "Excel, Access", "Database, Software Engineering", "MS Word"). Combine these inferred skills with any explicit skills.**
+      - summary: (string) A brief professional summary (1-2 sentences) in Korean. 
+        **CRITICAL: If the resume DOES NOT have an explicit summary, YOU MUST GENERATE ONE based on the candidate's skills and overall profile.**
       - email: (string) Email address.
       - phoneNumber: (string) Phone number (format: 010-XXXX-XXXX).
 
       [Constraint]
       1. Return ONLY raw JSON. No Markdown, no code blocks.
       2. If a field is missing, use null or an empty string.
-      3. The 'skill' field MUST be a JSON array.
-      4. Translate summary to Korean if it's in English.
+      3. However, the 'summary' field MUST NOT be null. You must create one if it's missing.
+      4. The 'skill' field MUST be a string.
+      5. Translate summary to Korean if it's in English.
     `;
 
-    // C. Gemini에게 파일과 프롬프트를 같이 전달 (멀티모달)
-    const result = await model.generateContent([prompt, filePart]);
-    const responseText = result.response.text();
+    const result = await genAI.models.generateContent({
+      model: import.meta.env.VITE_GEMINI_MODEL,
+      contents: [prompt, filePart],
+      config: {
+        responseMimeType: "application/json", 
+      }
+    });
 
-    // D. JSON 파싱
-    const cleanJson = responseText.replace(/```json|```/g, "").trim();
-    const parsedData = JSON.parse(cleanJson);
-
+    const parsedData = JSON.parse(result.text);
     console.log("AI가 추출한 데이터:", parsedData);
 
-    // E. Supabase에 저장 (insert)
+    // 임베딩용 텍스트 생성 
+    const textToEmbed = `스킬: ${parsedData.skill || ""}. 요약: ${parsedData.summary || ""}`;
+
+    const response = await genAI.models.embedContent({
+      model: "gemini-embedding-001",
+      contents: textToEmbed
+    });
+
+    const vector = response.embeddings[0].values
+    
     const { data, error } = await supabase
-      .from("User") // 테이블 이름 확인
+      .from("user")
       .insert([
         {
           name: parsedData.name,
-          skill: parsedData.skill, // Supabase가 알아서 배열로 저장해줍니다.
+          skill: parsedData.skill,
           summary: parsedData.summary,
           email: parsedData.email,
           phoneNumber: parsedData.phoneNumber,
+          embedding: vector
         },
       ])
       .select();
 
     if (error) throw new Error(error.message);
 
-    return data; // 저장된 데이터 반환
+    return data;
   } catch (error) {
     console.error("이력서 처리 중 오류:", error);
     throw new Error("이력서 분석 또는 저장에 실패했습니다.");

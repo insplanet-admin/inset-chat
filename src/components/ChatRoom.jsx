@@ -62,7 +62,7 @@ export default function ChatRoom() {
       if (!text) return;
 
       // 이걸로 화면 구성하면 될 듯 합니다.
-      // console.log(JSON.parse(text));
+      console.log(JSON.parse(text));
 
       setMessages((prev) =>
         prev.map((m) =>
@@ -106,7 +106,7 @@ export default function ChatRoom() {
 
     setMessage("");
 
-    if (roomID == 4) {
+    if (roomID == "4") {
       // UUID를 사용할때 기본 함수 -> crypto.randomUUID()를 사용하는데 type에러가 있어서
       // nanoid라는 라이브러리를 사용.
       const id = nanoid();
