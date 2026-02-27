@@ -1,4 +1,4 @@
-import { supabase } from "../supabase";
+import { supabase } from "../utils";
 
 export async function fetchDevMessages() {
   const { data, error } = await supabase.from("dev").select("*");

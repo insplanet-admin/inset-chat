@@ -1,21 +1,4 @@
-import { supabase } from "../supabase";
-
-// export async function fetchRooms() {
-//   const res = await fetch("/api/rooms");
-
-//   if (!res.ok) {
-//     let body = {};
-//     try {
-//       body = await res.json();
-//     } catch {
-//       body = {};
-//     }
-//     throw new Error(body.message || "Failed to fetch rooms");
-//   }
-
-//   const data = await res.json();
-//   return data.rooms;
-// }
+import { supabase } from "../utils";
 
 export async function fetchRooms() {
   const { data, error } = await supabase.from("Rooms").select("*");
