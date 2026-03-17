@@ -7,6 +7,7 @@ import { FilePen } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { nanoid } from "nanoid";
 import { parseAndSaveResume, postChatWithSupabase } from "../TestFetch";
+import { generateWordResume } from "./WordDownload";
 
 export default function ChatRoom() {
   const { id: roomID } = useParams();
@@ -62,7 +63,7 @@ export default function ChatRoom() {
       if (!text) return;
 
       // 이걸로 화면 구성하면 될 듯 합니다.
-      console.log(JSON.parse(text));
+      console.log(text);
 
       setMessages((prev) =>
         prev.map((m) =>
@@ -198,7 +199,11 @@ export default function ChatRoom() {
     <>
       <div className="chatPanelHeader">
         <span style={{ flex: 1, textAlign: "center" }}>Chat name</span>
-        <button className="iconButton" style={{ marginLeft: "auto" }}>
+        <button
+          className="iconButton"
+          style={{ marginLeft: "auto" }}
+          onClick={generateWordResume}
+        >
           <FilePen size={20} />
         </button>
       </div>

@@ -22,26 +22,39 @@ const CandidateCard = ({ data, isPrimary }) => {
 const MessageContent = ({ content }) => {
   let parsedData = null;
 
-  // 1. try/catch 안에서는 오직 데이터 파싱만 수행합니다.
   try {
     parsedData = JSON.parse(content);
   } catch {
-    // console.log("JSON Parse failed / plain text");
+    // 파싱 실패 시 조용히 넘어감
   }
 
-  // 2. 파싱된 데이터를 바탕으로 JSX는 try/catch 밖에서 렌더링합니다.
-  if (Array.isArray(parsedData) && parsedData.length > 0) {
+  // 💡 수정된 부분: LLM이 배열로 줬는지, 객체로 감싸서 줬는지 모두 확인합니다.
+  let candidatesArray = [];
+
+  if (Array.isArray(parsedData)) {
+    // 1. 순수 배열 형태인 경우 [ {..}, {..} ]
+    candidatesArray = parsedData;
+  } else if (parsedData && Array.isArray(parsedData.candidates)) {
+    // 2. 객체 안에 candidates 배열이 있는 경우 { candidates: [ {..}, {..} ] }
+    candidatesArray = parsedData.candidates;
+  }
+
+  // 배열에 데이터가 있다면 카드로 렌더링
+  if (candidatesArray.length > 0) {
     return (
       <StyledMessage>
-        {parsedData.map((candidate, idx) => (
-          // map을 쓸 때는 항상 key 속성을 넣어주는 것이 좋습니다.
-          <CandidateCard key={idx} data={candidate} isPrimary={idx === 0} />
+        {candidatesArray.map((candidate, idx) => (
+          <CandidateCard
+            key={candidate.id || idx}
+            data={candidate}
+            isPrimary={idx === 0}
+          />
         ))}
       </StyledMessage>
     );
   }
 
-  // 3. 배열이 아니거나 파싱에 실패했다면 일반 텍스트로 보여줍니다.
+  // 3. 배열을 못 찾았거나 파싱에 실패했다면 일반 텍스트로 보여줍니다.
   return <span style={{ whiteSpace: "pre-wrap" }}>{content}</span>;
 };
 
