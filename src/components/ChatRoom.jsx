@@ -6,8 +6,11 @@ import PromptInput from "./prompt/PromptInput";
 import { FilePen } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { nanoid } from "nanoid";
-import { parseAndSaveResume, postChatWithSupabase } from "../TestFetch";
-import { generateWordResume } from "./WordDownload";
+import {
+  parseAndSaveResume,
+  postChatWithSupabase,
+  updateMissingEmbeddings,
+} from "../TestFetch";
 
 export default function ChatRoom() {
   const { id: roomID } = useParams();
@@ -27,6 +30,10 @@ export default function ChatRoom() {
     queryFn: () => fetchMessagesByRoomId(roomID),
     enabled: !!roomID,
   });
+
+  // useEffect(() => {
+  //   updateMissingEmbeddings();
+  // }, []);
 
   useEffect(() => {
     if (!roomID) return;
@@ -199,11 +206,7 @@ export default function ChatRoom() {
     <>
       <div className="chatPanelHeader">
         <span style={{ flex: 1, textAlign: "center" }}>Chat name</span>
-        <button
-          className="iconButton"
-          style={{ marginLeft: "auto" }}
-          onClick={generateWordResume}
-        >
+        <button className="iconButton" style={{ marginLeft: "auto" }}>
           <FilePen size={20} />
         </button>
       </div>

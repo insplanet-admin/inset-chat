@@ -74,8 +74,9 @@ export async function postChatWithSupabase({
   message,
 }: PostChatParams): Promise<ChatResponse> {
   try {
+    console.log("사용자 검색어:", message);
+
     // 1. 사용자 질문(message)을 벡터로 변환 (Ollama bge-m3 사용)
-    console.log("사용자 질문:", message);
     const embedResponse = await fetch("http://localhost:11434/api/embeddings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,8 +86,6 @@ export async function postChatWithSupabase({
       }),
     });
 
-    console.log("Ollama 임베딩 응답:", embedResponse.ok);
-
     if (!embedResponse.ok) {
       throw new Error(`Ollama Embedding Error: ${embedResponse.status}`);
     }
@@ -95,11 +94,11 @@ export async function postChatWithSupabase({
     const queryVector = embedResult.embedding;
 
     const { data: matchedCandidates, error } = await supabase.rpc(
-      "match_resumes",
+      "match_users",
       {
         query_embedding: queryVector,
-        match_threshold: 0.5,
-        match_count: 3,
+        match_threshold: 0.4,
+        match_count: 3, // 상위 3명 추출
       },
     );
 
@@ -107,35 +106,46 @@ export async function postChatWithSupabase({
       throw new Error(`Vector Search Error: ${error.message}`);
     }
 
+    // 조건에 맞는 사람이 없으면 빈 배열 반환
     if (!matchedCandidates || matchedCandidates.length === 0) {
-      return { text: "[]" };
+      console.log("검색 조건에 맞는 인재가 없습니다.");
+      return { text: "검색 조건에 맞는 인재가 없습니다." };
     }
 
-    const minimalCandidates = matchedCandidates.map((c) => ({
+    const minimalCandidates = matchedCandidates.map((c: any) => ({
+      id: c.id,
       name: c.name,
-      skill: c.skill,
-      summary: c.summary,
-      email: c.email,
-      phoneNumber: c.phoneNumber,
+      skill: c.skills_summary || "", // DB의 스킬 요약 컬럼
+      // abilities 배열의 첫 번째 문장이나 job_title을 summary로 활용
+      summary: c.parsed_data?.abilities?.[0]?.desc || c.job_title || "",
+      // 만약 파싱된 데이터에 이메일/번호가 없다면 빈 문자열 처리
+      email: c.parsed_data?.email || "정보 없음",
+      phoneNumber: c.parsed_data?.phoneNumber || "정보 없음",
     }));
 
+    console.log("1차 벡터 검색 결과:", minimalCandidates);
+
+    // 4. AI 프롬프트 작성 (할루시네이션 방지 및 엄격한 JSON 반환 지시)
     const prompt = `
-      Task: Review the [Candidates] against the [Query].
+      [Role] You are an expert HR Assistant.
+      [Task] Review the [Candidates] against the [Query].
       Return a JSON array containing ALL these candidates.
-      For each, write a 1-sentence "reason" in Korean explaining the match.
+      For each candidate, write a 1-sentence "reason" in Korean explaining why their skills and experience match the user's query.
 
       [Query]
-        "${message}"
+      "${message}"
 
       [Candidates]
-        ${JSON.stringify(minimalCandidates)}
+      ${JSON.stringify(minimalCandidates)}
     `;
 
+    // 5. 챗봇이 반환할 최종 JSON 스키마 (화면에 뿌려주기 좋은 형태)
     const jsonSchema = {
       type: "array",
       items: {
         type: "object",
         properties: {
+          id: { type: "string" },
           name: { type: "string" },
           skill: { type: "string" },
           summary: { type: "string" },
@@ -144,6 +154,7 @@ export async function postChatWithSupabase({
           reason: { type: "string" },
         },
         required: [
+          "id",
           "name",
           "skill",
           "summary",
@@ -154,21 +165,28 @@ export async function postChatWithSupabase({
       },
     };
 
-    const llamaResponse = await fetch("http://localhost:11434/api/generate", {
+    // 6. LLM에게 최종 추천 사유 작성 및 포맷팅 지시
+    const llamaResponse = await fetch("http://localhost:11434/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: import.meta.env.VITE_LLAMA_TEXT_MODEL,
-        prompt: prompt,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert HR Assistant. You MUST output ONLY valid JSON array. Do not add any conversational text.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
         stream: false,
-        format: jsonSchema,
-        options: {
-          temperature: 0.1,
-          num_predict: 800,
-        },
-        keep_alive: 0,
       }),
     });
+
+    console.log("AI 분석 결과:", llamaResponse);
 
     if (!llamaResponse.ok) {
       throw new Error(`Ollama LLM Error: ${llamaResponse.status}`);
@@ -176,10 +194,16 @@ export async function postChatWithSupabase({
 
     const llamaResult = await llamaResponse.json();
 
-    // 로컬 LLM이 반환한 결과 텍스트 (JSON 형태의 문자열)
-    const resultText = llamaResult.response;
+    console.log("LLM이 반환한 원본 데이터:", llamaResult);
+    let resultText = llamaResult.message.content;
 
-    console.log("최종 분석 결과:", resultText);
+    // [안전장치] 불필요한 마크다운 백틱 제거
+    // resultText = resultText
+    //   .replace(/```json/gi, "")
+    //   .replace(/```/gi, "")
+    //   .trim();
+
+    console.log("최종 AI 분석 결과:", resultText);
 
     return { text: resultText };
   } catch (error) {
@@ -307,54 +331,183 @@ export async function parseAndSaveResume(file: File) {
       );
     }
 
+    // 1. 나중에 AI가 만들어줄 데이터의 형태 (지금은 가짜 데이터로 테스트)
     const jsonSchema = {
-      type: "object",
-      properties: {
-        name: { type: "string" },
-        skill: { type: "string" },
-        summary: { type: "string" },
-        email: { type: "string" },
-        phonenumber: { type: "string" },
-      },
-      required: ["name", "skill", "summary", "email", "phonenumber"],
+      name: "임재혁",
+      birthDate: "1990.05.12 (만 34세)",
+      jobTitle: "프론트엔드 개발자",
+      gender: "남",
+
+      // 새로 채워진 기본 정보
+      totalExperience: "5년 9개월",
+      skillRating: "중급",
+      address: "서울특별시 강남구 테헤란로 123, 101동 202호",
+
+      // 학력 데이터 (최신순)
+      education: [
+        {
+          date: "2009.03 ~ 2013.02",
+          school: "한국대학교",
+          specialty: "컴퓨터공학과",
+          state: "졸업",
+        },
+        {
+          date: "2006.03 ~ 2009.02",
+          school: "서울제일고등학교",
+          specialty: "이과",
+          state: "졸업",
+        },
+      ],
+
+      // 기존 경력 데이터 유지
+      experience: [
+        {
+          period: "2020.01 ~ 2023.12",
+          company: "인스플래닛(주)",
+          department: "개발그룹",
+          position: "책임",
+          task: "React 웹 서비스 개발",
+        },
+        {
+          period: "2018.03 ~ 2019.12",
+          company: "테스트컴퍼니",
+          department: "기획팀",
+          position: "대리",
+          task: "서비스 운영 및 유지보수",
+        },
+      ],
+
+      abilities: [
+        {
+          desc: "프론트엔드 개발자로서 React와 Next.js를 활용한 웹 애플리케이션 구축에 능숙하며,",
+        },
+        { desc: "TypeScript를 사용하여 안정적인 코드 작성이 가능합니다." },
+        {
+          desc: "또한, Figma를 활용한 UI/UX 협업 경험이 있어 디자이너와 원활한 소통이 가능합니다.",
+        },
+        {
+          desc: "다양한 프로젝트에서 프론트엔드 리드 역할을 수행하며, 아키텍처 설계부터 공통 컴포넌트 라이브러리 구축까지 폭넓은 경험을 보유하고 있습니다.",
+        },
+      ],
+
+      //  기존 스킬 데이터에 추가
+      skill: [
+        {
+          name: "React / Next.js",
+          level: "상",
+          note: "실무 3년, SSR 및 상태관리 능숙",
+        },
+        {
+          name: "TypeScript",
+          level: "상",
+          note: "타입 안정성을 고려한 설계 가능",
+        },
+        {
+          name: "Figma",
+          level: "중",
+          note: "기본 편집 및 UI/UX 디자이너와 협업 가능",
+        },
+      ],
+
+      //  자격증 데이터
+      certificate: [
+        { name: "정보처리기사", issuer: "한국산업인력공단", date: "2013.08" },
+        {
+          name: "SQL 개발자 (SQLD)",
+          issuer: "한국데이터산업진흥원",
+          date: "2015.12",
+        },
+      ],
+
+      // 어학 데이터
+      lang: [
+        { name: "영어", test: "TOEIC", score: "850점", date: "2022.05" },
+        { name: "영어", test: "OPIc", score: "IM2", date: "2021.11" },
+      ],
+
+      // 수상 경력 데이터
+      career: [
+        {
+          name: "제5회 핀테크 해커톤 챔피언십",
+          award: "대상 (금융위원장상)",
+          host: "금융위원회",
+          date: "2019.10",
+        },
+        {
+          name: "사내 우수 사원 표창",
+          award: "혁신상",
+          host: "인스플래닛(주)",
+          date: "2021.12",
+        },
+      ],
+
+      //  프로젝트 수행 경력 데이터
+      project: [
+        {
+          date: "2022.06 ~ 2023.12",
+          name: "차세대 자산관리 웹 플랫폼 구축",
+          customer: "A은행",
+          part: "프론트엔드 리드",
+          responsibility:
+            "Next.js 기반 아키텍처 설계, 공통 UI 컴포넌트 라이브러리 구축",
+        },
+        {
+          date: "2020.03 ~ 2021.11",
+          name: "사내 인트라넷 고도화 및 마이그레이션",
+          customer: "인스플래닛(주)",
+          part: "프론트엔드 개발",
+          responsibility:
+            "기존 jQuery 코드를 React로 마이그레이션, 렌더링 성능 30% 개선",
+        },
+      ],
     };
 
     const prompt = `
-[Role] You are a Resume Parser. Extract structured data from the resume.
+[CRITICAL Instructions]
+1. STRICT FACTUALITY: 
+   - Extract ONLY the information present in the [Resume Content].
+   - If missing, leave strings as "" and arrays as []. NEVER invent data.
 
-[Target Columns & Instructions]
-- name: Candidate's name.
-- skill: Technical skills (comma-separated). IF YOU SEE certifications (e.g., "정보처리기사", "컴활"), INFER the software/tools (e.g., "Excel, Software Engineering") and include them.
-- summary: 1-2 sentences professional summary in KOREAN. Generate one if missing.
-- email: Email address.
-- phoneNumber: Phone number (010-XXXX-XXXX).
+2. NEVER TRANSLATE JSON KEYS (🚨 MOST IMPORTANT):
+   - You MUST keep the exact English keys provided in the [JSON OUTPUT FORMAT]. 
+   - DO NOT translate the keys into Korean (e.g., NEVER use "이름" instead of "name", NEVER use "직무" instead of "jobTitle").
+   - The values must be in Korean, but the keys MUST remain in English.
+
+3. 'abilities' ARRAY STRICT RULE:
+   - The 'abilities' field MUST BE AN ARRAY OF OBJECTS: [{"desc": "sentence 1"}].
+   - Write 3-4 professional sentences in Korean summarizing core competencies.
+
+[JSON OUTPUT FORMAT REQUIRED]
+You MUST output ONLY a valid JSON object matching this exact structure with these EXACT ENGLISH KEYS:
+\`\`\`json
+${JSON.stringify(jsonSchema, null, 2)}
+\`\`\`
 
 [Resume Content]
 ${extractedText}
+    `;
 
-[Output]
-Return ONLY a raw JSON object exactly like this example:
-{
-  "name": "홍길동",
-  "skill": "React, Excel, Word",
-  "summary": "프론트엔드 개발 및 데이터 분석 역량을 갖춘 인재입니다.",
-  "email": "hong@example.com",
-  "phoneNumber": "010-1234-5678"
-}
-`;
-
-    const llamaResponse = await fetch("http://localhost:11434/api/generate", {
+    const llamaResponse = await fetch("http://localhost:11434/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: import.meta.env.VITE_LLAMA_TEXT_MODEL,
-        prompt: prompt,
-        stream: false,
-        format: jsonSchema,
-        keep_alive: 0,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a strict Resume Parser. Output ONLY valid JSON. NEVER translate JSON keys into other languages. ALWAYS use the exact English keys provided.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        stream: true,
         options: {
+          num_ctx: 8192,
           temperature: 0.1,
-          num_predict: 1000,
+          stop: ["<|endoftext|>", "<|im_start|>", "<|im_end|>", "Question:"],
         },
       }),
     });
@@ -363,20 +516,123 @@ Return ONLY a raw JSON object exactly like this example:
       throw new Error(`Ollama LLM Error: ${llamaResponse.status}`);
     }
 
-    const llamaResult = await llamaResponse.json();
-    let rawText = llamaResult.response || "{}";
-
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      rawText = jsonMatch[0];
+    if (!llamaResponse.body) {
+      throw new Error("응답 Body가 없습니다.");
     }
 
-    const parsedData = JSON.parse(rawText);
+    const reader = llamaResponse.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let rawResponse = "";
+    let buffer = ""; //  잘린 데이터를 임시로 모아둘 바구니(버퍼)
+
+    console.log(" [디버깅] AI가 답변 생성을 시작했습니다! (실시간 수신 중...)");
+
+    //  2. 계속해서 스트림을 읽어들이는 반복문
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        console.log("\n [디버깅] AI 답변 생성 완전 종료!");
+        console.log("AI 최종 완성 데이터 문번 :", rawResponse);
+        break;
+      }
+
+      // 새로 들어온 물방울(조각)을 바구니에 합칩니다.
+      buffer += decoder.decode(value, { stream: true });
+
+      // 바구니에 모인 데이터를 엔터(\n) 기준으로 쪼갭니다.
+      let lines = buffer.split("\n");
+
+      // 핵심: 맨 마지막 조각은 아직 엔터가 안 쳐진 '미완성 조각'일 수 있으므로
+      // 다시 바구니(buffer)에 넣어두고 다음번 물방울을 기다립니다!
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (line.trim() === "") continue;
+
+        try {
+          const parsedChunk = JSON.parse(line);
+          if (parsedChunk.message && parsedChunk.message.content) {
+            const word = parsedChunk.message.content;
+            rawResponse += word;
+
+            // 실시간 콘솔 출력 (이제 에러 없이 한 글자씩 잘 찍힙니다!)
+            console.log(` [실시간]: ${word}`);
+          }
+        } catch (e) {
+          console.error("스트림 청크 파싱 에러:", e, "\n문제의 데이터:", line);
+        }
+      }
+    }
+
+    // const llamaResult = await llamaResponse.json();
+
+    // let rawResponse = llamaResult.message?.content || llamaResult.response;
+    let parsedData;
+
+    console.log(rawResponse);
+
+    try {
+      if (!rawResponse) throw new Error("AI 응답이 비어있습니다.");
+
+      const startIndex = rawResponse.indexOf("{");
+      const lastIndex = rawResponse.lastIndexOf("}");
+
+      if (startIndex === -1 || lastIndex === -1) {
+        throw new Error("응답에서 JSON 객체를 찾을 수 없습니다.");
+      }
+
+      let cleanJsonString = rawResponse.substring(startIndex, lastIndex + 1);
+
+      cleanJsonString = cleanJsonString.replace(/[\u0000-\u0019]+/g, "");
+
+      // 파싱 성공!
+      parsedData = JSON.parse(cleanJsonString);
+
+      //  방어막 3: AI가 abilities를 마음대로 ["문장1", "문장2"] 형태로 줬을 경우 대응
+      // 우리가 쓸 임베딩 코드는 a.desc 를 찾기 때문에, 구조를 강제로 맞춰줍니다.
+      if (Array.isArray(parsedData.abilities)) {
+        parsedData.abilities = parsedData.abilities.map((item: any) => {
+          // 만약 그냥 텍스트(string)라면 { desc: "텍스트" } 형태로 포장해 줍니다.
+          if (typeof item === "string") {
+            return { desc: item };
+          }
+          return item;
+        });
+      }
+    } catch (parseError) {
+      console.error(
+        " [JSON 파싱 에러] AI가 만든 원본 데이터가 문법에 어긋납니다.",
+      );
+      console.log(" 문제의 AI 출력 원본 \n", rawResponse);
+      throw new Error("AI가 유효하지 않은 JSON 형식을 반환했습니다.");
+    }
+
+    parsedData.hasAbility =
+      Array.isArray(parsedData.abilities) && parsedData.abilities.length > 0;
+    parsedData.hasSkill =
+      Array.isArray(parsedData.skill) && parsedData.skill.length > 0;
+    parsedData.hasCertificate =
+      Array.isArray(parsedData.certificate) &&
+      parsedData.certificate.length > 0;
+    parsedData.hasLang =
+      Array.isArray(parsedData.lang) && parsedData.lang.length > 0;
+    parsedData.hasCareer =
+      Array.isArray(parsedData.career) && parsedData.career.length > 0;
 
     console.log("ai가 추출한 데이터:", parsedData);
 
     // 2. 임베딩용 텍스트 생성
-    const textToEmbed = `스킬: ${parsedData.skill || ""}. 요약: ${parsedData.summary || ""}`;
+    console.log("벡터 임베딩 생성 시작...");
+
+    const skillString = parsedData.skill.map((s: any) => s.name).join(", ");
+    const abilityString = parsedData.abilities
+      .map((a: any) => a.desc)
+      .join(" ");
+    const projectString = parsedData.project.map((p: any) => p.name).join(", ");
+
+    const textToEmbed =
+      `직무: ${parsedData.jobTitle} (${parsedData.totalExperience})\n기술스택: ${skillString}\n핵심역량: ${abilityString}\n주요경험: ${projectString}`.trim();
 
     // 3. Ollama (bge-m3) API 호출: 텍스트를 벡터로 변환 (1024차원)
     const embedResponse = await fetch("http://localhost:11434/api/embeddings", {
@@ -385,7 +641,6 @@ Return ONLY a raw JSON object exactly like this example:
       body: JSON.stringify({
         model: import.meta.env.VITE_LLAMA_EMBEDDING_MODEL,
         prompt: textToEmbed,
-        keep_alive: 0,
       }),
     });
 
@@ -396,16 +651,17 @@ Return ONLY a raw JSON object exactly like this example:
     const embedResult = await embedResponse.json();
     const vector = embedResult.embedding; // 생성된 1024차원 벡터 배열
 
-    // 4. Supabase DB에 저장 (테이블명 'resumes' 적용)
+    // 4. Supabase DB에 저장
     const { data, error } = await supabase
-      .from("resumes")
+      .from("users") // 방금 만든 새 테이블 이름!
       .insert([
         {
-          name: parsedData.name.replace(/\s+/g, ""),
-          skill: parsedData.skill,
-          summary: parsedData.summary,
-          email: parsedData.email,
-          phonenumber: parsedData.phonenumber,
+          name: parsedData.name
+            ? parsedData.name.replace(/\s+/g, "")
+            : "이름없음",
+          job_title: parsedData.jobTitle || "직무미상",
+          skills_summary: skillString,
+          parsed_data: parsedData, // 거대한 JSON 통째로 삽입!
           embedding: vector,
         },
       ])
@@ -419,5 +675,90 @@ Return ONLY a raw JSON object exactly like this example:
   } catch (error) {
     console.error("이력서 처리 중 오류:", error);
     throw new Error("이력서 분석 또는 저장에 실패했습니다.");
+  }
+}
+
+export async function updateMissingEmbeddings() {
+  try {
+    console.log("임베딩이 없는 데이터(null) 조회 중...");
+
+    // 1. DB에서 embedding 컬럼이 비어있는 유저의 id와 parsed_data만 가져옵니다.
+    const { data: users, error } = await supabase
+      .from("users")
+      .select("id, parsed_data")
+      .is("embedding", null);
+
+    if (error) throw error;
+
+    if (!users || users.length === 0) {
+      console.log(
+        " 모든 유저의 임베딩이 이미 존재합니다. (업데이트할 항목 없음)",
+      );
+      return;
+    }
+
+    console.log(
+      `총 ${users.length}건의 임베딩 생성을 시작합니다... (Ollama 실행 필요)`,
+    );
+
+    // 2. 가져온 유저 목록을 하나씩 돌면서 임베딩을 생성하고 업데이트합니다.
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      const parsedData = user.parsed_data;
+
+      // [안전장치] 혹시라도 배열이 없는 경우를 대비해 ( || [] ) 처리
+      const skillString = (parsedData.skill || [])
+        .map((s: any) => s.name)
+        .join(", ");
+      const abilityString = (parsedData.abilities || [])
+        .map((a: any) => a.desc)
+        .join(" ");
+      const projectString = (parsedData.project || [])
+        .map((p: any) => p.name)
+        .join(", ");
+
+      // 사용자님이 작성하신 완벽한 텍스트 조합 로직
+      const textToEmbed =
+        `직무: ${parsedData.jobTitle} (${parsedData.totalExperience})\n기술스택: ${skillString}\n핵심역량: ${abilityString}\n주요경험: ${projectString}`.trim();
+
+      // 3. Ollama에게 임베딩 벡터 생성 요청
+      const embedResponse = await fetch(
+        "http://localhost:11434/api/embeddings",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: import.meta.env.VITE_LLAMA_EMBEDDING_MODEL, // bge-m3 모델
+            prompt: textToEmbed,
+            keep_alive: 0,
+          }),
+        },
+      );
+
+      if (!embedResponse.ok) {
+        throw new Error(`Ollama API 에러: ${embedResponse.status}`);
+      }
+
+      const embedResult = await embedResponse.json();
+      const vector = embedResult.embedding;
+
+      // 4. 생성된 벡터를 Supabase의 해당 유저 row에 업데이트(Update)
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ embedding: vector })
+        .eq("id", user.id); //  핵심: 현재 돌고 있는 유저의 id에만 쏙 넣습니다.
+
+      if (updateError) throw updateError;
+
+      console.log(
+        ` [${i + 1}/${users.length}] ${parsedData.name} (${parsedData.jobTitle}) 임베딩 업데이트 완료!`,
+      );
+    }
+
+    console.log(" 모든 데이터의 임베딩 업데이트가 성공적으로 끝났습니다!");
+    alert("임베딩 생성 및 DB 업데이트가 완료되었습니다.");
+  } catch (error) {
+    console.error("임베딩 업데이트 중 오류 발생:", error);
+    alert("임베딩 업데이트 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
   }
 }

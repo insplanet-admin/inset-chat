@@ -1,5 +1,6 @@
 import { SyncLoader } from "react-spinners";
 import styled from "styled-components";
+import { generateWordResume } from "./WordDownload";
 
 const override = {
   display: "block",
@@ -15,6 +16,9 @@ const CandidateCard = ({ data, isPrimary }) => {
       <span>{data.summary}</span>
       <span>{data.phoneNumber}</span>
       <span>{data.reason}</span>
+      <button onClick={() => generateWordResume(data.id)}>
+        이력서 다운로드
+      </button>
     </StyledCandidateCard>
   );
 };
@@ -28,7 +32,7 @@ const MessageContent = ({ content }) => {
     // 파싱 실패 시 조용히 넘어감
   }
 
-  // 💡 수정된 부분: LLM이 배열로 줬는지, 객체로 감싸서 줬는지 모두 확인합니다.
+  // 수정된 부분: LLM이 배열로 줬는지, 객체로 감싸서 줬는지 모두 확인합니다.
   let candidatesArray = [];
 
   if (Array.isArray(parsedData)) {
