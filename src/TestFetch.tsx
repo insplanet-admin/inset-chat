@@ -24,33 +24,37 @@ interface ChatResponse {
   text: string;
 }
 
-export async function postChatToSLLM({
+type ChatIntent = "search" | "chat";
+
+async function postChatToType({
   message,
-  history = [], // 이전 대화 기록을 담을 배열 (옵션)
 }: {
-  id: string;
   message: string;
-  history?: any[];
-}): Promise<ChatResponse> {
+}): Promise<ChatIntent> {
   try {
-    // 1. Ollama API 호출
     const response = await fetch("http://localhost:11434/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: import.meta.env.VITE_LLAMA_TEXT_MODEL,
+        model: import.meta.env.VITE_LLAMA_TYPE_MODEL,
         messages: [
-          // 시스템 프롬프트: 챗봇의 자아 설정
           {
             role: "system",
-            content: "너는 사내 인트라넷의 친절한 AI 비서야.",
+            // 주의: 시스템 프롬프트에 불필요한 들여쓰기(스페이스)를 없앴습니다.
+            content: `당신은 질문 의도를 분류하는 라우터 AI입니다. 
+              인재(사람, 이력서, 후보자, 개발자)를 검색하는 의도라면 "search", 그 외의 날씨, 인사, 일반 질문 등은 모두 "chat"으로 분류하세요. 
+              반드시 오직 JSON 형식으로만 응답해야 합니다.`,
           },
-          // (선택) 이전 대화 기록이 있다면 여기에 펼쳐줍니다.
-          ...history,
-          // 현재 사용자의 질문
+          // AI가 패턴을 따라 할 수 있도록 '모범 답안(Few-shot)'을 쥐여줍니다.
+          { role: "user", content: "리액트 3년차 프론트엔드 개발자 찾아줘" },
+          { role: "assistant", content: `{"type": "search"}` },
+          { role: "user", content: "오늘 날씨 어때요?" },
+          { role: "assistant", content: `{"type": "chat"}` },
+          { role: "user", content: "정보처리기사 자격증 있는 사람 있어?" },
+          { role: "assistant", content: `{"type": "search"}` },
           { role: "user", content: message },
         ],
-        stream: false, // MVP 단계이므로 한꺼번에 받기
+        stream: false,
       }),
     });
 
@@ -61,22 +65,32 @@ export async function postChatToSLLM({
     }
 
     const result = await response.json();
+
     const aiText = result.message.content;
 
-    return { text: aiText };
+    try {
+      const parsedData = JSON.parse(aiText);
+
+      if (parsedData.type === "search" || parsedData.type === "chat") {
+        console.log(`라우터 질문: "${message}" 분류: ${parsedData.type}`);
+        return parsedData.type;
+      }
+
+      return "chat";
+    } catch (parseError) {
+      console.error("라우터 파싱 실패. AI가 뱉은 원본:", aiText);
+      return "chat";
+    }
   } catch (error) {
     console.error("sLLM Chat Error:", error);
     throw new Error("대화 처리 중 오류가 발생했습니다.");
   }
 }
 
-export async function postChatWithSupabase({
+async function postChatWithSupabase({
   message,
 }: PostChatParams): Promise<ChatResponse> {
   try {
-    console.log("사용자 검색어:", message);
-
-    // 1. 사용자 질문(message)을 벡터로 변환 (Ollama bge-m3 사용)
     const embedResponse = await fetch("http://localhost:11434/api/embeddings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -98,7 +112,7 @@ export async function postChatWithSupabase({
       {
         query_embedding: queryVector,
         match_threshold: 0.4,
-        match_count: 3, // 상위 3명 추출
+        match_count: 3,
       },
     );
 
@@ -115,17 +129,14 @@ export async function postChatWithSupabase({
     const minimalCandidates = matchedCandidates.map((c: any) => ({
       id: c.id,
       name: c.name,
-      skill: c.skills_summary || "", // DB의 스킬 요약 컬럼
-      // abilities 배열의 첫 번째 문장이나 job_title을 summary로 활용
+      skill: c.skills_summary || "",
       summary: c.parsed_data?.abilities?.[0]?.desc || c.job_title || "",
-      // 만약 파싱된 데이터에 이메일/번호가 없다면 빈 문자열 처리
       email: c.parsed_data?.email || "정보 없음",
       phoneNumber: c.parsed_data?.phoneNumber || "정보 없음",
     }));
 
-    console.log("1차 벡터 검색 결과:", minimalCandidates);
+    console.log("벡터 검색 결과:", minimalCandidates);
 
-    // 4. AI 프롬프트 작성 (할루시네이션 방지 및 엄격한 JSON 반환 지시)
     const prompt = `
       [Role] You are an expert HR Assistant.
       [Task] Review the [Candidates] against the [Query].
@@ -139,33 +150,6 @@ export async function postChatWithSupabase({
       ${JSON.stringify(minimalCandidates)}
     `;
 
-    // 5. 챗봇이 반환할 최종 JSON 스키마 (화면에 뿌려주기 좋은 형태)
-    const jsonSchema = {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          skill: { type: "string" },
-          summary: { type: "string" },
-          email: { type: "string" },
-          phoneNumber: { type: "string" },
-          reason: { type: "string" },
-        },
-        required: [
-          "id",
-          "name",
-          "skill",
-          "summary",
-          "email",
-          "phoneNumber",
-          "reason",
-        ],
-      },
-    };
-
-    // 6. LLM에게 최종 추천 사유 작성 및 포맷팅 지시
     const llamaResponse = await fetch("http://localhost:11434/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -197,12 +181,6 @@ export async function postChatWithSupabase({
     console.log("LLM이 반환한 원본 데이터:", llamaResult);
     let resultText = llamaResult.message.content;
 
-    // [안전장치] 불필요한 마크다운 백틱 제거
-    // resultText = resultText
-    //   .replace(/```json/gi, "")
-    //   .replace(/```/gi, "")
-    //   .trim();
-
     console.log("최종 AI 분석 결과:", resultText);
 
     return { text: resultText };
@@ -215,8 +193,29 @@ export async function postChatWithSupabase({
   }
 }
 
+export async function postChat(params: PostChatParams): Promise<ChatResponse> {
+  try {
+    const intentType = await postChatToType({ message: params.message });
+
+    if (intentType == "search") {
+      console.log("search flow");
+
+      const searchResult = await postChatWithSupabase(params);
+      return searchResult;
+    } else {
+      console.log("chat flow");
+      return { text: "안됩니다." };
+    }
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "알 수 없는 오류";
+
+    throw new Error("post Chat Error");
+  }
+}
+
 /** 파일에서 텍스트를 추출하는 헬퍼 함수 */
-export async function extractTextFromFile(file: File): Promise<string> {
+async function extractTextFromFile(file: File): Promise<string> {
   const extension = file.name.split(".").pop()?.toLowerCase();
 
   try {
@@ -225,7 +224,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
       return await file.text();
     }
 
-    // 2. PDF 파일 (이력서 파싱의 핵심!)
+    // 2. PDF 파일
     else if (extension === "pdf") {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -267,7 +266,6 @@ export async function extractTextFromFile(file: File): Promise<string> {
 
     // 5. HWP 파일 (한글)
     else if (extension === "hwp") {
-      // 사용자님이 작성하신 훌륭한 로직을 안전하게 감쌌습니다.
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
@@ -331,7 +329,6 @@ export async function parseAndSaveResume(file: File) {
       );
     }
 
-    // 1. 나중에 AI가 만들어줄 데이터의 형태 (지금은 가짜 데이터로 테스트)
     const jsonSchema = {
       name: "임재혁",
       birthDate: "1990.05.12 (만 34세)",
@@ -343,7 +340,6 @@ export async function parseAndSaveResume(file: File) {
       skillRating: "중급",
       address: "서울특별시 강남구 테헤란로 123, 101동 202호",
 
-      // 학력 데이터 (최신순)
       education: [
         {
           date: "2009.03 ~ 2013.02",
@@ -359,7 +355,6 @@ export async function parseAndSaveResume(file: File) {
         },
       ],
 
-      // 기존 경력 데이터 유지
       experience: [
         {
           period: "2020.01 ~ 2023.12",
@@ -390,7 +385,6 @@ export async function parseAndSaveResume(file: File) {
         },
       ],
 
-      //  기존 스킬 데이터에 추가
       skill: [
         {
           name: "React / Next.js",
@@ -409,7 +403,6 @@ export async function parseAndSaveResume(file: File) {
         },
       ],
 
-      //  자격증 데이터
       certificate: [
         { name: "정보처리기사", issuer: "한국산업인력공단", date: "2013.08" },
         {
@@ -419,13 +412,11 @@ export async function parseAndSaveResume(file: File) {
         },
       ],
 
-      // 어학 데이터
       lang: [
         { name: "영어", test: "TOEIC", score: "850점", date: "2022.05" },
         { name: "영어", test: "OPIc", score: "IM2", date: "2021.11" },
       ],
 
-      // 수상 경력 데이터
       career: [
         {
           name: "제5회 핀테크 해커톤 챔피언십",
@@ -441,7 +432,6 @@ export async function parseAndSaveResume(file: File) {
         },
       ],
 
-      //  프로젝트 수행 경력 데이터
       project: [
         {
           date: "2022.06 ~ 2023.12",
@@ -463,28 +453,28 @@ export async function parseAndSaveResume(file: File) {
     };
 
     const prompt = `
-[CRITICAL Instructions]
-1. STRICT FACTUALITY: 
-   - Extract ONLY the information present in the [Resume Content].
-   - If missing, leave strings as "" and arrays as []. NEVER invent data.
+      [CRITICAL Instructions]
+      1. STRICT FACTUALITY: 
+        - Extract ONLY the information present in the [Resume Content].
+        - If missing, leave strings as "" and arrays as []. NEVER invent data.
 
-2. NEVER TRANSLATE JSON KEYS (🚨 MOST IMPORTANT):
-   - You MUST keep the exact English keys provided in the [JSON OUTPUT FORMAT]. 
-   - DO NOT translate the keys into Korean (e.g., NEVER use "이름" instead of "name", NEVER use "직무" instead of "jobTitle").
-   - The values must be in Korean, but the keys MUST remain in English.
+      2. NEVER TRANSLATE JSON KEYS ( MOST IMPORTANT):
+        - You MUST keep the exact English keys provided in the [JSON OUTPUT FORMAT]. 
+        - DO NOT translate the keys into Korean (e.g., NEVER use "이름" instead of "name", NEVER use "직무" instead of "jobTitle").
+        - The values must be in Korean, but the keys MUST remain in English.
 
-3. 'abilities' ARRAY STRICT RULE:
-   - The 'abilities' field MUST BE AN ARRAY OF OBJECTS: [{"desc": "sentence 1"}].
-   - Write 3-4 professional sentences in Korean summarizing core competencies.
+      3. 'abilities' ARRAY STRICT RULE:
+        - The 'abilities' field MUST BE AN ARRAY OF OBJECTS: [{"desc": "sentence 1"}].
+        - Write 3-4 professional sentences in Korean summarizing core competencies.
 
-[JSON OUTPUT FORMAT REQUIRED]
-You MUST output ONLY a valid JSON object matching this exact structure with these EXACT ENGLISH KEYS:
-\`\`\`json
-${JSON.stringify(jsonSchema, null, 2)}
-\`\`\`
+      [JSON OUTPUT FORMAT REQUIRED]
+      You MUST output ONLY a valid JSON object matching this exact structure with these EXACT ENGLISH KEYS:
+      \`\`\`json
+      ${JSON.stringify(jsonSchema, null, 2)}
+      \`\`\`
 
-[Resume Content]
-${extractedText}
+      [Resume Content]
+      ${extractedText}
     `;
 
     const llamaResponse = await fetch("http://localhost:11434/api/chat", {
@@ -523,11 +513,10 @@ ${extractedText}
     const reader = llamaResponse.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let rawResponse = "";
-    let buffer = ""; //  잘린 데이터를 임시로 모아둘 바구니(버퍼)
+    let buffer = "";
 
     console.log(" [디버깅] AI가 답변 생성을 시작했습니다! (실시간 수신 중...)");
 
-    //  2. 계속해서 스트림을 읽어들이는 반복문
     while (true) {
       const { done, value } = await reader.read();
 
@@ -537,14 +526,10 @@ ${extractedText}
         break;
       }
 
-      // 새로 들어온 물방울(조각)을 바구니에 합칩니다.
       buffer += decoder.decode(value, { stream: true });
 
-      // 바구니에 모인 데이터를 엔터(\n) 기준으로 쪼갭니다.
       let lines = buffer.split("\n");
 
-      // 핵심: 맨 마지막 조각은 아직 엔터가 안 쳐진 '미완성 조각'일 수 있으므로
-      // 다시 바구니(buffer)에 넣어두고 다음번 물방울을 기다립니다!
       buffer = lines.pop() || "";
 
       for (const line of lines) {
@@ -565,9 +550,6 @@ ${extractedText}
       }
     }
 
-    // const llamaResult = await llamaResponse.json();
-
-    // let rawResponse = llamaResult.message?.content || llamaResult.response;
     let parsedData;
 
     console.log(rawResponse);
@@ -586,11 +568,8 @@ ${extractedText}
 
       cleanJsonString = cleanJsonString.replace(/[\u0000-\u0019]+/g, "");
 
-      // 파싱 성공!
       parsedData = JSON.parse(cleanJsonString);
 
-      //  방어막 3: AI가 abilities를 마음대로 ["문장1", "문장2"] 형태로 줬을 경우 대응
-      // 우리가 쓸 임베딩 코드는 a.desc 를 찾기 때문에, 구조를 강제로 맞춰줍니다.
       if (Array.isArray(parsedData.abilities)) {
         parsedData.abilities = parsedData.abilities.map((item: any) => {
           // 만약 그냥 텍스트(string)라면 { desc: "텍스트" } 형태로 포장해 줍니다.
@@ -622,7 +601,6 @@ ${extractedText}
 
     console.log("ai가 추출한 데이터:", parsedData);
 
-    // 2. 임베딩용 텍스트 생성
     console.log("벡터 임베딩 생성 시작...");
 
     const skillString = parsedData.skill.map((s: any) => s.name).join(", ");
@@ -634,7 +612,6 @@ ${extractedText}
     const textToEmbed =
       `직무: ${parsedData.jobTitle} (${parsedData.totalExperience})\n기술스택: ${skillString}\n핵심역량: ${abilityString}\n주요경험: ${projectString}`.trim();
 
-    // 3. Ollama (bge-m3) API 호출: 텍스트를 벡터로 변환 (1024차원)
     const embedResponse = await fetch("http://localhost:11434/api/embeddings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -649,11 +626,10 @@ ${extractedText}
     }
 
     const embedResult = await embedResponse.json();
-    const vector = embedResult.embedding; // 생성된 1024차원 벡터 배열
+    const vector = embedResult.embedding;
 
-    // 4. Supabase DB에 저장
     const { data, error } = await supabase
-      .from("users") // 방금 만든 새 테이블 이름!
+      .from("users")
       .insert([
         {
           name: parsedData.name
@@ -661,7 +637,7 @@ ${extractedText}
             : "이름없음",
           job_title: parsedData.jobTitle || "직무미상",
           skills_summary: skillString,
-          parsed_data: parsedData, // 거대한 JSON 통째로 삽입!
+          parsed_data: parsedData,
           embedding: vector,
         },
       ])
@@ -678,6 +654,7 @@ ${extractedText}
   }
 }
 
+// 사용 x -> DB에 값을 넣었을때 한번에 Embeddding 하여 추가.
 export async function updateMissingEmbeddings() {
   try {
     console.log("임베딩이 없는 데이터(null) 조회 중...");

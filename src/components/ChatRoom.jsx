@@ -6,11 +6,7 @@ import PromptInput from "./prompt/PromptInput";
 import { FilePen } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { nanoid } from "nanoid";
-import {
-  parseAndSaveResume,
-  postChatWithSupabase,
-  updateMissingEmbeddings,
-} from "../TestFetch";
+import { parseAndSaveResume, postChat } from "../TestFetch";
 
 export default function ChatRoom() {
   const { id: roomID } = useParams();
@@ -30,10 +26,6 @@ export default function ChatRoom() {
     queryFn: () => fetchMessagesByRoomId(roomID),
     enabled: !!roomID,
   });
-
-  // useEffect(() => {
-  //   updateMissingEmbeddings();
-  // }, []);
 
   useEffect(() => {
     if (!roomID) return;
@@ -63,7 +55,7 @@ export default function ChatRoom() {
   });
 
   const chatMutation = useMutation({
-    mutationFn: postChatWithSupabase,
+    mutationFn: postChat,
     onSuccess: (data, variables) => {
       const id = variables.id;
       const text = data?.text ?? "";
