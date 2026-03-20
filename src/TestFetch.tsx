@@ -1,4 +1,4 @@
-import { supabase, genAI } from "./utils";
+import { supabase } from "./utils";
 import * as mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import * as pdfjsLib from "pdfjs-dist";

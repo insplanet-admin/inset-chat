@@ -6,7 +6,7 @@ import PromptInput from "./prompt/PromptInput";
 import { FilePen } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { nanoid } from "nanoid";
-import { parseAndSaveResume, postChat } from "../TestFetch";
+import { parseAndSaveResume, postChat } from "../aiService";
 
 export default function ChatRoom() {
   const { id: roomID } = useParams();
