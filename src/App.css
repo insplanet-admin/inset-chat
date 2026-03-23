@@ -41,51 +41,6 @@ input {
   color: #888;
 }
 
-/* layout */
-.chatApp {
-  height: 100vh;
-  /* width: 100vh; */
-  display: flex;
-  flex-direction: column;
-}
-
-.chatHeader {
-  display: flex;
-  align-items: center;
-}
-
-.chatTitle {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: 0.2px;
-}
-
-/* left rooms */
-.sidebar {
-  width: var(--sidebar-width);
-  padding: 1rem;
-  box-sizing: border-box;
-  /* background: #161618; */
-
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-height: 0;
-
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-}
-
-.roomsHeader {
-  padding: 12px 14px;
-  font-size: 12px;
-  opacity: 0.8;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
 .roomsList {
   display: flex;
   flex-direction: column;
@@ -105,18 +60,6 @@ input {
     background 0.15s ease,
     border 0.15s ease;
 }
-.menuitem {
-  height: var(--size-medium);
-  border: 1px solid transparent;
-  border-radius: 50px;
-  padding: 0rem 0.75rem;
-  font-weight: 500;
-}
-.menuitem:hover,
-.roomBtn:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
 .roomBtn:active {
   transform: scale(0.99);
 }
@@ -124,32 +67,6 @@ input {
 .roomBtn.isActive {
   background: rgba(120, 140, 255, 0.18);
   /* border-color: rgba(120, 140, 255, 0.35); */
-}
-
-/* right chat */
-.chatPanel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  padding-left: var(--sidebar-width);
-  /* background-color: #1b1b1f; */
-}
-
-.chatPanelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-background);
-  /* // 왜 min */
-  min-height: 56px;
-  padding: 0 1.5rem;
-  font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-
-  position: sticky;
-  top: 0;
 }
 
 .chatMessages {
@@ -268,16 +185,6 @@ input {
   background-color: var(--color-primary);
   color: #fff;
   border-radius: 50%;
-}
-
-/* responsive */
-@media (max-width: 800px) {
-  .sidebar {
-    display: none;
-  }
-  .chatPanel {
-    padding-left: 0;
-  }
 }
 
 .loader {
