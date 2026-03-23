@@ -1,16 +1,33 @@
 import ChatRoom from "./components/ChatRoom";
 
-import MenuItem from "./components/MenuItem";
 import Text from "./components/Text";
-import { FilePen, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import Spacer from "./components/Spacer";
 import Row from "./components/Row";
 import ConversationArea from "./components/ConversationArea";
+import {
+  ContentInner,
+  FixedBottom,
+  FixedTop,
+  Main,
+  Page,
+  Sidebar,
+} from "./components/layouts";
+
+// <div className="chatApp">
+//   <aside className="sidebar">
+
+//   </aside>
+{
+  /* 
+      <main className="chatPanel">
+      </main> */
+}
 
 export default function ChatMain() {
   return (
-    <div className="chatApp">
-      <aside className="sidebar">
+    <Page hasSidebar>
+      <Sidebar>
         {/* <header className="chatHeader">
             <h2 className="chatTitle">insplanet</h2>
           </header> */}
@@ -26,9 +43,6 @@ export default function ChatMain() {
         </div>
         <Spacer size={4} />
         <Spacer size={4} />
-        <MenuItem icon={<FilePen size={16} />} onClick={() => {}}>
-          새 채팅
-        </MenuItem>
         <Spacer size={4} />
         <div style={{ padding: "0 .75rem" }}>
           <Text variant="label" color="#999">
@@ -37,11 +51,22 @@ export default function ChatMain() {
         </div>
         <Spacer size={1} />
         <ConversationArea />
-      </aside>
+      </Sidebar>
+      <Main>
+        {/* <ScrollBody>
+          <div style={{ padding: "20px" }}>
+            <h2 style={{ height: "100vh" }}>컨텐츠 제목</h2>
+            <p>매우 긴 내용들...</p>
+          </div>
+        </ScrollBody> */}
 
-      <main className="chatPanel">
-        <ChatRoom />
-      </main>
-    </div>
+        <ContentInner size="wide">
+          <FixedTop></FixedTop>
+
+          <ChatRoom />
+        </ContentInner>
+        <FixedBottom></FixedBottom>
+      </Main>
+    </Page>
   );
 }

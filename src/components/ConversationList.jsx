@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { createRooms, fetchRooms } from "../api/rooms.js";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import MenuItem from "./menu-item/index.js";
 
 function ConversationList({ onSelectRoom }) {
   const navigate = useNavigate();
@@ -42,20 +43,9 @@ function ConversationList({ onSelectRoom }) {
   return (
     <div className="roomsList">
       {rooms.map((room) => (
-        // <button
-        //   key={room.id}
-        //   className={`roomBtn ${room.id === activeRoomId ? "isActive" : ""}`}
-        //   onClick={() => () => navigate(`/${room.id}`)}
-        // >
-        //   {room.name}
-        // </button>
-        <Link
-          key={room.id}
-          className={`roomBtn ${room.id === activeRoomId ? "isActive" : ""}`}
-          to={`/${room.id}`}
-        >
+        <MenuItem key={room.id} onClick={() => () => navigate(`/${room.id}`)}>
           {room.name}
-        </Link>
+        </MenuItem>
       ))}
 
       {/* {isCreating && ( */}
