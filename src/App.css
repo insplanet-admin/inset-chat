@@ -48,81 +48,13 @@ input {
   width: 100%;
 }
 
-.roomBtn {
-  width: 100%;
-  height: var(--size-medium);
-  text-align: left;
-  padding: 0.5rem 0.75rem;
-  border-radius: 50px;
-  font-weight: 500;
-  transition:
-    transform 0.06s ease,
-    background 0.15s ease,
-    border 0.15s ease;
-}
-.roomBtn:active {
-  transform: scale(0.99);
-}
-
-.roomBtn.isActive {
-  background: rgba(120, 140, 255, 0.18);
-  /* border-color: rgba(120, 140, 255, 0.35); */
-}
-
-.chatMessages {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: var(--chat-width);
-  margin: 0 auto var(--chat-spacing);
-  padding: 1rem var(--grid-margin);
-  box-sizing: border-box;
-}
-
-/* message bubbles */
-.msg {
-  max-width: min(520px, 80%);
-  margin-bottom: 1rem;
-  border-radius: 50px;
-  align-self: flex-start;
-  text-align: start;
-}
-
-.msg.me {
-  padding: 0.5rem 1rem;
-  margin-bottom: 0;
-  align-self: flex-end;
-  background: #e9e9e9;
-}
-
-.msg.error {
-  background: rgba(255, 120, 120, 0.18);
-  border-color: rgba(255, 120, 120, 0.35);
-}
-
-.promptInputContainer {
-  position: sticky;
-  bottom: 0;
-}
-.promptInputContainer::before {
-  position: absolute;
-  bottom: 0;
-  background: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 1),
-    rgba(255, 255, 255, 0)
-  );
-}
-
 .promptInput {
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: var(--chat-width);
-  margin: 0 auto 1rem;
+  margin: 0 auto;
   border-radius: 1rem;
-  display: flex;
   gap: 0.5rem;
   padding: 1rem 1rem;
   box-sizing: border-box;

@@ -1,10 +1,11 @@
 import styled from "styled-components";
 
 export const ScrollArea = styled.div`
-  /* 핵심 로직 */
   width: 100%;
   height: 100%; /* 부모의 높이를 상속 */
-  overflow-y: auto; /* 내용이 넘칠 때만 스크롤 */
+
+  overflow-x: hidden;
+  overflow-y: auto;
 
   /* 커스텀 스크롤바 (선택 사항 - 브라우저 기본보다 훨씬 세련되게 보임) */
   &::-webkit-scrollbar {

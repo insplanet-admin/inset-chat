@@ -1,5 +1,3 @@
-import Text from "./components/Text";
-import { Menu, Search } from "lucide-react";
 import Spacer from "./components/Spacer";
 import Row from "./components/Row";
 import ConversationArea from "./components/ConversationArea";
@@ -21,12 +19,14 @@ import ChatMessages from "./components/ChatMessages";
 import PromptInput from "./components/prompt/PromptInput";
 import { fetchMessagesByRoomId, insertMessages } from "./api/messages";
 import { parseAndSaveResume, postChat } from "./aiService";
+import Text from "./components/common/text/Text";
 
 export default function ChatMain() {
+  // TODO messages 서버 상태를 클라이언트에서 다시 사용하고 있음
   const { id: roomID } = useParams();
   const qc = useQueryClient();
   const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState("");
+  const [prompt, setPrompt] = useState("");
 
   const initializedRoomRef = useRef(null);
 
@@ -49,7 +49,6 @@ export default function ChatMain() {
     if (initializedRoomRef.current === roomID) return;
     initializedRoomRef.current = roomID;
 
-    // eslint-disable-next-line
     setMessages(
       roomMessages.map((m) => ({
         id: m.id,
@@ -74,9 +73,6 @@ export default function ChatMain() {
       const id = variables.id;
       const text = data?.text ?? "";
       if (!text) return;
-
-      // 이걸로 화면 구성하면 될 듯 합니다.
-      console.log(text);
 
       setMessages((prev) =>
         prev.map((m) =>
@@ -110,19 +106,17 @@ export default function ChatMain() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setMessages((prev) => [...prev, { role: false, content: message }]);
+    setMessages((prev) => [...prev, { role: false, content: prompt }]);
 
-    console.log("handleSubmit");
     insertMutation.mutate({
-      content: message,
+      content: prompt,
       roomId: roomID,
     });
 
-    setMessage("");
+    setPrompt("");
 
     if (roomID == "4") {
       // UUID를 사용할때 기본 함수 -> crypto.randomUUID()를 사용하는데 type에러가 있어서
-      // nanoid라는 라이브러리를 사용.
       const id = nanoid();
 
       setMessages((prev) => [
@@ -135,7 +129,7 @@ export default function ChatMain() {
         },
       ]);
 
-      chatMutation.mutate({ message: message, id: id });
+      chatMutation.mutate({ message: prompt, id: id });
     }
   };
 
@@ -211,52 +205,74 @@ export default function ChatMain() {
   return (
     <Page hasSidebar>
       <Sidebar>
-        <div>
-          <Row justify="space-between" align="center" style={{ width: "100%" }}>
-            <button className="iconButton">
-              <Menu size={20} />
-            </button>
-            <button className="iconButton">
-              <Search size={20} />
-            </button>
-          </Row>
-        </div>
+        <Row justify="space-between" align="center">
+          ㅇ
+        </Row>
         <Spacer size={4} />
         <Spacer size={4} />
         <Spacer size={4} />
         <div style={{ padding: "0 .75rem" }}>
-          <Text variant="label" color="#999">
-            내 채팅
-          </Text>
+          <Text>내 채팅</Text>
         </div>
         <Spacer size={1} />
         <ConversationArea />
       </Sidebar>
       <Main>
-        {/* <ScrollBody>
-          <div style={{ padding: "20px" }}>
-            <h2 style={{ height: "100vh" }}>컨텐츠 제목</h2>
-            <p>매우 긴 내용들...</p>
-          </div>
-        </ScrollBody> */}
         <ScrollBody>
           <ContentInner size="wide">
-            <FixedTop>room id</FixedTop>
+            <FixedTop>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  height: "64px",
+                }}
+              >
+                room id
+              </div>
+            </FixedTop>
             <ChatMessages messages={messages} />
           </ContentInner>
         </ScrollBody>
         <FixedBottom>
           <PromptInput
-            value={message}
-            setMessage={(e) => {
-              setMessage(e.target.value);
+            value={prompt}
+            setPrompt={(e) => {
+              setPrompt(e.target.value);
             }}
             onSubmit={handleSubmit}
             onKeyDown={handleKeyDown}
             onFileDrop={handleFileDrop}
           />
+          <Suggestions>
+            {[
+              "신한은행 파견 근무를 위한 퍼블리셔는 어떤 역량이 필요해?",
+              "오늘 서울 날씨 어때?",
+              "센트럴에쓰 근처의 점심 식당 추천해줘.",
+            ].map((suggestion) => (
+              <Suggestion key={suggestion}>{suggestion}</Suggestion>
+            ))}
+          </Suggestions>
         </FixedBottom>
       </Main>
     </Page>
   );
 }
+
+const Suggestions = ({ children }: { children: React.ReactNode }) => {
+  return <div className="suggestions">{children}</div>;
+};
+
+const Suggestion = ({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) => {
+  return (
+    <button className="suggestion" onClick={onClick}>
+      {children}
+    </button>
+  );
+};
