@@ -32,7 +32,13 @@ export const Sidebar = styled.aside`
   border-right: 1px solid #eee;
   display: flex;
   flex-direction: column;
-  /* 사이드바 내부도 메뉴가 많아지면 스크롤이 필요하므로 ScrollArea 재사용 가능 */
+
+  /* 핵심: 부모 높이를 다 채우고 고정 */
+  height: 100%;
+  position: relative; /* sticky 대신 고정된 영역으로 작동 */
+
+  /* 사이드바 내부 메뉴가 많아질 경우를 대비 */
+  overflow-y: auto;
 `;
 
 export const Main = styled.main`
@@ -40,7 +46,7 @@ export const Main = styled.main`
   grid-template-rows: auto 1fr auto;
   height: 100vh;
   width: 100%;
-  overflow: hidden; /* 브라우저 창 스크롤 차단 */
+  // overflow: hidden;
 `;
 
 export const FixedTop = styled.div`
@@ -54,7 +60,6 @@ export const FixedTop = styled.div`
 export const ScrollBody = styled(ScrollArea)`
   grid-row: 2;
   /* 부모가 준 1fr 공간을 꽉 채우며 내부에서만 스크롤 */
-  background-color: #f4f4f4;
 `;
 
 export const FixedBottom = styled.div`
