@@ -1,12 +1,13 @@
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
-import { supabase } from "../utils";
+import { supabase } from "../utils/supabase";
+import { decryptJSON } from "../utils/encrypt";
 
 export async function generateWordResume(userId: string) {
   try {
     const { data, error } = await supabase
-      .from("users")
+      .from("resumes")
       .select("parsed_data")
       .eq("id", userId)
       .single();
@@ -15,7 +16,12 @@ export async function generateWordResume(userId: string) {
       throw new Error("DB에서 이력서를 찾을 수 없습니다.");
     }
 
-    const resumeData = data.parsed_data;
+    let resumeData: any = {};
+    try {
+      resumeData = decryptJSON<any>(data.parsed_data);
+    } catch {
+      resumeData = data.parsed_data;
+    }
 
     resumeData.hasAbility =
       Array.isArray(resumeData.abilities) && resumeData.abilities.length > 0;

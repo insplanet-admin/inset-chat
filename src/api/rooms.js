@@ -1,4 +1,4 @@
-import { supabase } from "../utils";
+import { supabase } from "../utils/supabase";
 
 export async function fetchRooms() {
   const { data, error } = await supabase.from("Rooms").select("*");

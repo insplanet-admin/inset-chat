@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { SyncLoader } from "react-spinners";

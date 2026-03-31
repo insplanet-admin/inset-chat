@@ -1,4 +1,4 @@
-import { supabase } from "../utils";
+import { supabase } from "../utils/supabase";
 
 export async function fetchDevMessages() {
   const { data, error } = await supabase.from("dev").select("*");
@@ -21,7 +21,7 @@ export async function insertDevMessages({ role, content, status }) {
   return data; // 새로 만들어진 room row
 }
 
-export async function fetchMessagesByRoomId(roomId) {
+export async function fetchMessages(roomId) {
   const { data, error } = await supabase
     .from("messages")
     .select("*")

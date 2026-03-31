@@ -1,6 +1,6 @@
 import { ArrowBigUp, Plus } from "lucide-react";
 import Row from "../Row";
-import DragDropWrapper from "../../DragDropWrapper";
+import DragDropWrapper from "../DragDropWrapper";
 
 interface Props {
   value: string;

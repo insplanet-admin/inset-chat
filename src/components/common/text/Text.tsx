@@ -6,7 +6,7 @@ import {
   TextElementType,
   textVariants,
 } from "./TextTypes";
-import tokens from "../../../tokens";
+import tokens from "../../../utils/tokens";
 
 interface BaseProps {
   children: React.ReactNode;

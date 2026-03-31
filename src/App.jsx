@@ -1,7 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./App.css";
-import ChatMain from "./ChatMain.jsx";
 import { Route, Routes } from "react-router-dom";
+import ChatRoom from "./pages/ChatRoom.js";
+import ChatMain from "./pages/ChatMain";
+import PasswordPage from "./pages/PasswordPage";
+import ChatLayout from "./components/ChatLayout";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,9 +19,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Routes>
-        <Route path="/" element={<ChatMain />} />
-        <Route path="/:id" element={<ChatMain />} />
-        {/* <Route path="*" element={<NotFound />} /> */}
+        <Route path="/" element={<PasswordPage />} />
+        <Route element={<ChatLayout />}>
+          <Route path="/chat" element={<ChatMain />} />
+          <Route path="/chat/:id" element={<ChatRoom />} />
+        </Route>
       </Routes>
     </QueryClientProvider>
   );

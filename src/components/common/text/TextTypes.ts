@@ -1,4 +1,4 @@
-import tokens from "../../../tokens";
+import tokens from "../../../utils/tokens";
 
 const fontSizeToken = tokens["2.-semantic-tokens"].dark.scale.type;
 /** 1px -0.25px -1px */
