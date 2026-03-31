@@ -1,6 +1,6 @@
 import React from "react";
 import styled, { css } from "styled-components";
-import tokens from "token";
+import tokens from "tokens";
 
 const btnTokens = tokens["3.-component-tokens"]["type-1"].button;
 const typoTokens = tokens["2.-semantic-tokens"].light.scale.type.label;
@@ -8,10 +8,12 @@ const interactionTokens = tokens["2.-semantic-tokens"].light.interaction;
 const colorTokens = tokens["2.-semantic-tokens"].light.color;
 const paletteTokens = tokens["1.-primitives"].palettet.static;
 
-type ButtonSize = Exclude<keyof typeof btnTokens.size, "segmented" | "xlarge">;
+export type ButtonSize = Exclude<
+  keyof typeof btnTokens.size,
+  "segmented" | "xlarge"
+>;
 type ButtonStyle = "filled" | "outlined" | "subtle" | "ghost";
 type ButtonState = "default" | "hover" | "pressed" | "focus" | "disabled";
-
 
 interface BaseProps {
   style?: ButtonStyle;
@@ -21,7 +23,7 @@ interface BaseProps {
   children: React.ReactNode;
   trailingIcon?: React.ReactNode;
   onClick?: () => void;
-};
+}
 
 const Button = ({
   style = "filled",

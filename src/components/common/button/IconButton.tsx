@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import tokens from "../../../token";
+import tokens from "../../../utils/tokens";
 
 const btnTokens = tokens["3.-component-tokens"]["type-1"].button;
 const semanticLight = tokens["2.-semantic-tokens"].light;
@@ -11,14 +11,13 @@ type ButtonSize = Exclude<keyof typeof btnTokens.size, "segmented">;
 type ButtonStyle = "filled" | "outlined" | "subtle" | "ghost";
 type ButtonState = "default" | "hover" | "pressed" | "focus" | "disabled";
 
-
 interface BaseProps {
   style?: ButtonStyle;
   size?: ButtonSize;
   state?: ButtonState;
   children: React.ReactNode;
   onClick?: () => void;
-};
+}
 
 const IconButton = ({
   style = "filled",

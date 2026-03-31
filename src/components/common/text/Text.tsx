@@ -1,10 +1,9 @@
-import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import {
-  TextVariants,
   FontWeight,
   TextElementType,
   textVariants,
+  TextVariants,
 } from "./TextTypes";
 import tokens from "../../../utils/tokens";
 
@@ -17,6 +16,9 @@ interface BaseProps {
 
 interface TextProps<T> extends BaseProps {
   as?: T;
+  trim?: boolean;
+  ellipsis?: boolean;
+  lines?: number;
 }
 
 const Text = <T extends TextElementType = "span">({
@@ -24,10 +26,19 @@ const Text = <T extends TextElementType = "span">({
   children,
   variant,
   weight,
-  color,
+  trim,
+  ellipsis,
+  lines,
 }: TextProps<T>) => {
   return (
-    <StyledText as={as} variant={variant} weight={weight} color={color}>
+    <StyledText
+      as={as}
+      variant={variant}
+      weight={weight}
+      trim={trim}
+      ellipsis={ellipsis}
+      lines={lines}
+    >
       {children}
     </StyledText>
   );
@@ -37,6 +48,9 @@ const StyledText = styled.span<{
   as?: React.ElementType;
   variant?: TextVariants;
   weight?: FontWeight;
+  trim?: boolean;
+  ellipsis?: boolean;
+  lines?: number;
 }>`
   font-size: ${({ variant }) => variant && textVariants[variant].fontSize};
   letter-spacing: ${({ variant }) =>
@@ -47,7 +61,28 @@ const StyledText = styled.span<{
   font-weight: ${({ weight }) =>
     weight && tokens["1.-primitives"].typography["font-weight"][weight].value};
 
-  color: ${({ color }) => color && color};
+  ${({ trim }) =>
+    trim &&
+    css`
+      line-height: 1;
+    `}
+
+  ${({ ellipsis }) =>
+    ellipsis &&
+    css`
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    `}
+
+      ${({ lines }) =>
+    lines &&
+    css`
+      display: webkit-box;
+      -webkit-line-clamp: ${lines};
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    `}
 `;
 
 export default Text;

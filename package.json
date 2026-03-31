@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "generate:icons": "node generate-icon-types.js",
+    "dev": "npm run generate:icons && vite -- host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
