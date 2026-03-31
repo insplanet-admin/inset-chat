@@ -29,6 +29,7 @@ const Text = <T extends TextElementType = "span">({
   trim,
   ellipsis,
   lines,
+  color,
 }: TextProps<T>) => {
   return (
     <StyledText
@@ -38,6 +39,7 @@ const Text = <T extends TextElementType = "span">({
       trim={trim}
       ellipsis={ellipsis}
       lines={lines}
+      color={color}
     >
       {children}
     </StyledText>
@@ -51,7 +53,9 @@ const StyledText = styled.span<{
   trim?: boolean;
   ellipsis?: boolean;
   lines?: number;
+  color?: string;
 }>`
+  color: ${({ color }) => color};
   font-size: ${({ variant }) => variant && textVariants[variant].fontSize};
   letter-spacing: ${({ variant }) =>
     variant && textVariants[variant].letterSpacing};

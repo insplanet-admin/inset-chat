@@ -8,7 +8,7 @@ import {
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Outlet } from "react-router-dom";
 import { nanoid } from "nanoid";
 import ChatMessages from "../components/ChatMessages";
 import PromptInput from "../components/prompt/PromptInput";
@@ -81,44 +81,47 @@ const ChatRoom = () => {
   };
 
   return (
-    <Main>
-      <ScrollBody>
-        <ContentInner size="wide">
-          <FixedTop>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                height: "64px",
-              }}
-            >
-              room id
-            </div>
-          </FixedTop>
-          <ChatMessages messages={messages} isAITyping={isAITyping} />
-        </ContentInner>
-      </ScrollBody>
-      <FixedBottom>
-        <PromptInput
-          value={prompt}
-          setPrompt={(e) => {
-            setPrompt(e.target.value);
-          }}
-          onSubmit={handleSubmit}
-          onKeyDown={handleKeyDown}
-          onFileDrop={handleFileDrop}
-        />
-        <Suggestions>
-          {[
-            "신한은행 파견 근무를 위한 퍼블리셔는 어떤 역량이 필요해?",
-            "오늘 서울 날씨 어때?",
-            "센트럴에쓰 근처의 점심 식당 추천해줘.",
-          ].map((suggestion) => (
-            <Suggestion key={suggestion}>{suggestion}</Suggestion>
-          ))}
-        </Suggestions>
-      </FixedBottom>
-    </Main>
+    <div style={{ display: "flex", width: "100%", height: "100%" }}>
+      <Main>
+        <ScrollBody>
+          <ContentInner size="wide">
+            <FixedTop>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  height: "64px",
+                }}
+              >
+                room id
+              </div>
+            </FixedTop>
+            <ChatMessages messages={messages} isAITyping={isAITyping} />
+          </ContentInner>
+        </ScrollBody>
+        <FixedBottom>
+          <PromptInput
+            value={prompt}
+            setPrompt={(e) => {
+              setPrompt(e.target.value);
+            }}
+            onSubmit={handleSubmit}
+            onKeyDown={handleKeyDown}
+            onFileDrop={handleFileDrop}
+          />
+          <Suggestions>
+            {[
+              "신한은행 파견 근무를 위한 퍼블리셔는 어떤 역량이 필요해?",
+              "오늘 서울 날씨 어때?",
+              "센트럴에쓰 근처의 점심 식당 추천해줘.",
+            ].map((suggestion) => (
+              <Suggestion key={suggestion}>{suggestion}</Suggestion>
+            ))}
+          </Suggestions>
+        </FixedBottom>
+      </Main>
+      <Outlet />
+    </div>
   );
 };
 

@@ -5,6 +5,7 @@ import ChatRoom from "./pages/ChatRoom.js";
 import ChatMain from "./pages/ChatMain";
 import PasswordPage from "./pages/PasswordPage";
 import ChatLayout from "./components/ChatLayout";
+import { CandidateDetailPane } from "./components/CandidateDetailPane";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,7 +23,12 @@ function App() {
         <Route path="/" element={<PasswordPage />} />
         <Route element={<ChatLayout />}>
           <Route path="/chat" element={<ChatMain />} />
-          <Route path="/chat/:id" element={<ChatRoom />} />
+          <Route path="/chat/:id" element={<ChatRoom />}>
+            <Route
+              path="candidate/:candidateId"
+              element={<CandidateDetailPane />}
+            />
+          </Route>
         </Route>
       </Routes>
     </QueryClientProvider>

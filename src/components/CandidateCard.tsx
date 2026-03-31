@@ -1,4 +1,6 @@
 import styled from "styled-components";
+import Text from "./common/text/Text";
+import Icon from "./common/Icon/Icon";
 
 const renderStars = (rating) => {
   if (!rating) return "-";
@@ -22,7 +24,7 @@ const CandidateCard = ({ data, onClick }) => {
 
         <UserInfo>
           <NameWrapper>
-            <Name>{data.name}</Name>
+            <Text variant="bodyLg">{data.name}</Text>
             {data.details?.internal_rating >= 4.0 && (
               <Badge bgColor="#F6F2FE" textColor="#8337ED">
                 ✓ BEST
@@ -44,19 +46,23 @@ const CandidateCard = ({ data, onClick }) => {
           </MetaInfo>
         </UserInfo>
 
-        <BookmarkIcon>⚲</BookmarkIcon>
+        <Icon name="Star" color="#878A92" />
       </Header>
 
       <Divider />
 
       <DetailList>
         <DetailRow>
-          <Label>최종학력</Label>
+          <Text variant="labelSm" color="#878a92">
+            최종학력
+          </Text>
           <Value>{data.details?.final_education || "-"}</Value>
         </DetailRow>
 
         <DetailRow>
-          <Label>보유자격</Label>
+          <Text variant="labelSm" color="#878a92">
+            보유자격
+          </Text>
           <Value>
             {data.details?.qualifications?.length > 0
               ? data.details.qualifications.join(", ")
@@ -65,14 +71,18 @@ const CandidateCard = ({ data, onClick }) => {
         </DetailRow>
 
         <DetailRow>
-          <Label>경력사항</Label>
+          <Text variant="labelSm" color="#878a92">
+            경력사항
+          </Text>
           <Value className="truncate">
             {data.details?.major_experience || "-"}
           </Value>
         </DetailRow>
 
         <DetailRow>
-          <Label>보유기술</Label>
+          <Text variant="labelSm" color="#878a92">
+            보유기술
+          </Text>
           <SkillContainer>
             {data.details?.skills?.slice(0, 3).map((skill, idx) => (
               <SkillTag key={idx}>{skill}</SkillTag>
@@ -82,7 +92,9 @@ const CandidateCard = ({ data, onClick }) => {
         </DetailRow>
 
         <DetailRow>
-          <Label>내부평가</Label>
+          <Text variant="labelSm" color="#878a92">
+            내부평가
+          </Text>
           <Value className="rating">
             {renderStars(data.details?.internal_rating)}
           </Value>
@@ -108,7 +120,7 @@ const Card = styled.div`
 
 const Header = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 20px;
 `;
 
@@ -140,12 +152,6 @@ const NameWrapper = styled.div`
   margin-bottom: 4px;
 `;
 
-const Name = styled.span`
-  font-size: 16px;
-  font-weight: 600;
-  color: #292b2d;
-`;
-
 const Badge = styled.span<{ bgColor?: string; textColor?: string }>`
   font-size: 11px;
   font-weight: 600;
@@ -169,20 +175,6 @@ const MetaInfo = styled.div`
   }
 `;
 
-const BookmarkIcon = styled.div`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 20px;
-  color: #ccc;
-  cursor: pointer;
-  transition: color 0.2s;
-
-  &:hover {
-    color: #ffd700;
-  }
-`;
-
 const Divider = styled.hr`
   border: none;
   border-top: 1px solid #f0f0f0;
@@ -201,13 +193,6 @@ const DetailRow = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
-`;
-
-const Label = styled.span`
-  font-size: 12px;
-  font-weight: 600;
-  color: #878a92;
-  flex-shrink: 0;
 `;
 
 const Value = styled.span`

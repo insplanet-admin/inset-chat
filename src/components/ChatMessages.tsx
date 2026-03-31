@@ -1,11 +1,14 @@
 import { SyncLoader } from "react-spinners";
-import { generateWordResume } from "./WordDownload";
 import { AIChatBubble, MyChatBubble } from "./domain/ChatBubble";
 import { CandidateCard } from "./CandidateCard";
+import { useNavigate } from "react-router-dom";
 
 const ChatMessages = ({ messages, isAITyping }) => {
+  const navigate = useNavigate();
+
   const cardClickHandler = (id) => {
     console.log("id", id);
+    navigate(`candidate/${id}`);
   };
 
   return (

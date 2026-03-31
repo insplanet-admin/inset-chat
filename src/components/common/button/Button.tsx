@@ -1,6 +1,6 @@
 import React from "react";
 import styled, { css } from "styled-components";
-import tokens from "tokens";
+import tokens from "../../../utils/tokens";
 
 const btnTokens = tokens["3.-component-tokens"]["type-1"].button;
 const typoTokens = tokens["2.-semantic-tokens"].light.scale.type.label;
