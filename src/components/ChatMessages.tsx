@@ -15,23 +15,20 @@ const ChatMessages = ({ messages, isAITyping }) => {
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {messages.map((mes) => {
         const isMine = mes.role == false;
-
         let candidatesArray = [];
-        if (
-          typeof mes.content === "string" &&
-          (mes.content.startsWith("[") || mes.content.startsWith("{"))
-        ) {
-          try {
-            const parsedData = JSON.parse(mes.content);
-            if (Array.isArray(parsedData)) {
-              candidatesArray = parsedData;
-              console.log(candidatesArray);
-            } else {
-              console.log("candidatesArray error");
+
+        if (typeof mes.content === "string") {
+          const trimmed = mes.content.trim();
+          if (trimmed.startsWith("[") || trimmed.startsWith("```json")) {
+            try {
+              const cleaned = trimmed.replace(/```json|```/g, "").trim();
+              const parsed = JSON.parse(cleaned);
+              if (Array.isArray(parsed)) {
+                candidatesArray = parsed;
+              }
+            } catch (e) {
+              // 파싱 실패 시 일반 텍스트로 처리
             }
-          } catch {
-            // 파싱 실패 시 조용히 넘어감 (일반 메시지인 경우)
-            console.log("candidatesArray 일반 메세지");
           }
         }
 

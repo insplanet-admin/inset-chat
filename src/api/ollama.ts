@@ -1,6 +1,6 @@
 const OLLAMA_URL = "http://localhost:11434";
 
-export async function getEmbedding(text: string): Promise<number[]> {
+const getEmbedding = async (text: string): Promise<number[]> => {
   const response = await fetch(`${OLLAMA_URL}/api/embeddings`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -14,14 +14,14 @@ export async function getEmbedding(text: string): Promise<number[]> {
     throw new Error(`Ollama Embedding Error: ${response.status}`);
   const result = await response.json();
   return result.embedding;
-}
+};
 
-export async function askOllama(
+const askOllama = async (
   model: string,
   messages: any[],
   stream = true,
   options?: any,
-): Promise<string> {
+): Promise<string> => {
   const response = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -62,4 +62,6 @@ export async function askOllama(
     }
   }
   return rawResponse;
-}
+};
+
+export { getEmbedding, askOllama };

@@ -3,6 +3,7 @@ import { encryptJSON } from "../utils/encrypt";
 import { askOllama, getEmbedding } from "../api/ollama";
 import { extractTextFromFile } from "../utils/fileParser";
 import { RESUME_PARSER_PROMPT } from "../constatns/resumePrompt";
+import { askGemini } from "../api/gemini";
 
 const parseAndSaveResume = async (file: File) => {
   try {
@@ -21,15 +22,10 @@ const parseAndSaveResume = async (file: File) => {
       },
     ];
 
-    const rawResponse = await askOllama(
-      import.meta.env.VITE_LLAMA_TEXT_MODEL,
+    const rawResponse = await askGemini(
+      import.meta.env.VITE_GEMINI_FLASH_MODEL,
       messages,
       true,
-      {
-        num_ctx: 8192,
-        temperature: 0.1,
-        stop: ["<|endoftext|>", "<|im_start|>", "<|im_end|>", "Question:"],
-      },
     );
 
     const startIndex = rawResponse.indexOf("{");
@@ -69,13 +65,15 @@ const parseAndSaveResume = async (file: File) => {
 
     const originalName =
       parsedData.personal_info?.name?.replace(/\s+/g, "") || "이름없음";
+
+    console.log(parsedData);
     const encryptedParsedData = encryptJSON(parsedData);
 
     const { data, error } = await supabase
       .from("resumes")
       .insert([
         {
-          name: originalName, // 이름도 암호화가 필요했다면 encryptJSON(originalName)으로 변경하세요.
+          name: originalName,
           job_category: jobCategory,
           total_experience_months:
             parsedData.professional_summary?.total_experience_months || 0,

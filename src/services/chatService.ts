@@ -6,6 +6,7 @@ import {
   CHAT_TYPE_MESSAGES,
   CHAT_WITH_SUPABASE_MESSAGES,
 } from "../constatns/chatPrompt";
+import { askGemini } from "../api/gemini";
 
 export interface PostChatParams {
   id: string;
@@ -23,8 +24,8 @@ const postChatToType = async ({
   message,
 }: PostChatParams): Promise<ChatIntent> => {
   try {
-    const content = await askOllama(
-      import.meta.env.VITE_LLAMA_TYPE_MODEL,
+    const content = await askGemini(
+      import.meta.env.VITE_GEMINI_FLASH_MODEL,
       CHAT_TYPE_MESSAGES(message),
       false,
     );
@@ -143,8 +144,8 @@ const postChatWithSupabase = async ({
     });
 
     console.log("복호화 :", minimalCandidates);
-    const resultText = await askOllama(
-      import.meta.env.VITE_LLAMA_TEXT_MODEL,
+    const resultText = await askGemini(
+      import.meta.env.VITE_GEMINI_FLASH_MODEL,
       CHAT_WITH_SUPABASE_MESSAGES(message, JSON.stringify(minimalCandidates)),
       true,
     );
