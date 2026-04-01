@@ -80,6 +80,7 @@ const parseAndSaveResume = async (file: File) => {
             parsedData.professional_summary?.total_experience_months || 0,
           resume_data: encryptedParsedData,
           embedding: vector,
+          rating: 0,
         },
       ])
       .select();

@@ -87,7 +87,6 @@ const useTextArea = (initialValue: string = "") => {
 
   const ChangeHandler = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
-    console.log(e.target.value);
   }, []);
 
   const reset = useCallback(() => {

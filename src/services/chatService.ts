@@ -69,9 +69,6 @@ const postChatWithSupabase = async ({
         if (typeof c.resume_data === "string") {
           decryptedResumeData = decryptJSON<any>(c.resume_data);
           console.log("string decryptedResumeData : ", decryptedResumeData);
-        } else if (c.resume_data && c.resume_data.encrypted) {
-          decryptedResumeData = decryptJSON<any>(c.resume_data);
-          console.log("resumeData decryptedResumeData : ", decryptedResumeData);
         } else {
           decryptedResumeData = c.resume_data || {};
         }
@@ -88,6 +85,7 @@ const postChatWithSupabase = async ({
         educations = [],
         certifications = [],
         skills = [],
+        projects = [],
       } = rd;
 
       const birthYearStr = rd?.personal_info?.birth_date?.substring(0, 4);
@@ -116,7 +114,6 @@ const postChatWithSupabase = async ({
         c.total_experience_months ||
           professional_summary.total_experience_months,
       );
-      const majorExperience = professional_summary.major_achievement || "";
       const internalRating = c.rating || 0;
       const introduction =
         evaluation.one_line_review ||
@@ -136,11 +133,12 @@ const postChatWithSupabase = async ({
         details: {
           final_education: finalEdu,
           qualifications: qualifications,
-          major_experience: majorExperience,
+          major_experience: "",
           skills: skillsArr,
           internal_rating: internalRating,
         },
         introduction: introduction,
+        projects: projects,
       };
     });
 

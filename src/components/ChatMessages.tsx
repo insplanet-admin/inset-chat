@@ -37,7 +37,9 @@ const ChatMessages = ({ messages, isAITyping }) => {
         if (hasCandidates) {
           return (
             <Box key={mes.id} gap="1rem">
-              <span>해당 조건에 맞는 인력을 4명 찾았습니다.</span>
+              <span>
+                해당 조건에 맞는 인력을 {candidatesArray.length}명 찾았습니다.
+              </span>
               {/* TODO grid */}
               <Box gap="1rem" direction="row" wrap>
                 {candidatesArray.map((candidate, idx) => (
