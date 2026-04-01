@@ -2,10 +2,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import IconButton from "./common/button/IconButton";
 import Icon from "./common/Icon/Icon";
 import Text from "./common/text/Text";
+import AreaInput from "./common/Input/AreaInput";
+import Button from "./common/button/Button";
 import styled from "styled-components";
 import { supabase } from "../utils/supabase";
 import { decryptJSON } from "../utils/encrypt";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useTextArea } from "./common/Input/hooks";
 
 const fetchAndDecryptCandidate = async (id: string) => {
   const { data, error } = await supabase
@@ -86,12 +90,59 @@ const fetchAndDecryptCandidate = async (id: string) => {
 const CandidateDetailPane = () => {
   const { candidateId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { value: newComment, onChange, setValue } = useTextArea("");
+
+  const { data: comments = [], isLoading: isCommentsLoading } = useQuery({
+    queryKey: ["candidate_comments", candidateId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("resume_comments")
+        .select("*")
+        .eq("resume_id", candidateId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    enabled: !!candidateId,
+  });
+
+  const addCommentMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const { data, error } = await supabase
+        .from("resume_comments")
+        .insert([
+          {
+            resume_id: candidateId,
+            author: "대표님", // 비밀번호를 이용
+            content: content,
+          },
+        ])
+        .select();
+
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["candidate_comments", candidateId],
+      });
+      setValue("");
+    },
+  });
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["candidate", candidateId],
     queryFn: () => fetchAndDecryptCandidate(candidateId as string),
     enabled: !!candidateId, // candidateId가 있을 때만 실행
   });
+
+  const handleCommentSubmit = () => {
+    if (!newComment.trim()) return;
+    addCommentMutation.mutate(newComment);
+  };
 
   if (isLoading) {
     return (
@@ -110,10 +161,21 @@ const CandidateDetailPane = () => {
     );
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.nativeEvent.isComposing) return;
+
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleCommentSubmit();
+    }
+  };
+
   return (
     <PaneWrapper>
       <Header>
-        <Text variant="headingMd">PROFILE</Text>
+        <Text variant="headingSm" weight="bold">
+          PROFILE
+        </Text>
         <IconButton style="ghost" onClick={() => navigate("..")}>
           <Icon name="CloseL" />
         </IconButton>
@@ -122,10 +184,12 @@ const CandidateDetailPane = () => {
       <ContentArea>
         <ProfileCard>
           <Avatar src={data.profileImage} alt={data.name} />
-          <Name>{data.name}</Name>
-          <Subtitle>
+          <Text variant="headingSm" weight="bold">
+            {data.name}
+          </Text>
+          <Text variant="bodyMd" weight="medium" color="#00838A">
             <span>{data.experience}</span> · {data.age}
-          </Subtitle>
+          </Text>
           <InfoBox>
             <InfoItem>{data.phone}</InfoItem>
             <InfoItem>{data.email}</InfoItem>
@@ -133,15 +197,19 @@ const CandidateDetailPane = () => {
           </InfoBox>
         </ProfileCard>
 
-        {/* 2. 오른쪽 이력 상세 카드 */}
         <DetailCard>
-          {/* AI 요약평 */}
           <Section>
-            <SectionTitle>AI 요약평 ✨</SectionTitle>
+            <Text variant="headingXs" weight="bold">
+              AI 요약평 ✨
+            </Text>
             <AISummaryBox>
-              <AIText>{data.aiSummary}</AIText>
+              <Text variant="bodyMd" weight="medium" color="#6D7178">
+                {data.aiSummary}
+              </Text>
               <ScoreBox>
-                <ScoreLabel>매칭 점수</ScoreLabel>
+                <Text variant="bodySm" weight="medium" color="#6D7178">
+                  매칭 점수
+                </Text>
                 <ScoreValue>{data.matchScore}%</ScoreValue>
                 <ProgressBarWrapper>
                   <ProgressBar percent={data.matchScore} />
@@ -150,12 +218,15 @@ const CandidateDetailPane = () => {
             </AISummaryBox>
           </Section>
 
-          {/* 기술 스택 */}
           <Section>
-            <SectionTitle>기술</SectionTitle>
+            <Text variant="headingXs" weight="bold">
+              기술
+            </Text>
             <div>
               <Row>
-                <RowLabel>코딩언어</RowLabel>
+                <Text variant="bodyMd" weight="medium" color="#6D7178">
+                  코딩언어
+                </Text>
                 <TagList>
                   {data.skills.languages.map((skill) => (
                     <Tag key={skill}>{skill}</Tag>
@@ -163,7 +234,9 @@ const CandidateDetailPane = () => {
                 </TagList>
               </Row>
               <Row>
-                <RowLabel>프레임워크</RowLabel>
+                <Text variant="bodyMd" weight="medium" color="#6D7178">
+                  코딩언어
+                </Text>
                 <TagList>
                   {data.skills.frameworks.map((skill) => (
                     <Tag key={skill}>{skill}</Tag>
@@ -173,13 +246,16 @@ const CandidateDetailPane = () => {
             </div>
           </Section>
 
-          {/* 근무이력 */}
           <Section>
-            <SectionTitle>근무이력</SectionTitle>
+            <Text variant="headingXs" weight="bold">
+              근무이력
+            </Text>
             <div>
               {data.workHistory.map((work, idx) => (
                 <Row key={idx}>
-                  <RowLabel>{work.period}</RowLabel>
+                  <Text variant="bodyMd" weight="medium" color="#6D7178">
+                    {work.period}
+                  </Text>
                   <RowContent>
                     {work.company} <span>· {work.role}</span>
                   </RowContent>
@@ -188,13 +264,17 @@ const CandidateDetailPane = () => {
             </div>
           </Section>
 
-          {/* 주요경력 */}
           <Section>
-            <SectionTitle>주요경력</SectionTitle>
+            <Text variant="headingXs" weight="bold">
+              주요경력
+            </Text>
             <div>
               {data.majorExperience.map((exp, idx) => (
                 <Row key={idx}>
-                  <RowLabel>{exp.period}</RowLabel>
+                  <Text variant="bodyMd" weight="medium" color="#6D7178">
+                    {exp.period}
+                  </Text>
+
                   <RowContent>
                     {exp.project} <span>· {exp.role}</span>
                   </RowContent>
@@ -203,11 +283,54 @@ const CandidateDetailPane = () => {
             </div>
           </Section>
 
-          {/* 하단 액션 버튼 */}
-          <FooterActions>
-            <TextButton>이메일 보내기</TextButton>
-            <PrimaryButton>이력서 다운받기</PrimaryButton>
-          </FooterActions>
+          <Section>
+            <Text variant="headingXs" weight="bold">
+              평점 및 코멘트
+            </Text>
+
+            <CommentContainer>
+              {/* 1. 댓글 입력 영역 */}
+              <CommentInputWrapper>
+                <AreaInput
+                  variant="outline"
+                  placeholder="후보자에 대한 평가나 메모를 남겨주세요."
+                  value={newComment}
+                  onChange={onChange}
+                  onKeyDown={handleKeyDown}
+                />
+
+                <div style={{ alignSelf: "flex-end" }}>
+                  <Button
+                    onClick={handleCommentSubmit}
+                    state={
+                      !newComment.trim() || addCommentMutation.isPending
+                        ? "disabled"
+                        : "default"
+                    }
+                  >
+                    {addCommentMutation.isPending ? "등록 중..." : "등록"}
+                  </Button>
+                </div>
+              </CommentInputWrapper>
+
+              {/* 2. 댓글 목록 영역 */}
+              <CommentList>
+                {comments.map((comment) => (
+                  <CommentItem key={comment.id}>
+                    <CommentHeader>
+                      <Text variant="bodyMd">{comment.author}</Text>
+                      <Text variant="bodySm" color="#9ca3af">
+                        {new Date(comment.created_at).toLocaleDateString(
+                          "ko-KR",
+                        )}
+                      </Text>
+                    </CommentHeader>
+                    <Text variant="bodyMd">{comment.content}</Text>
+                  </CommentItem>
+                ))}
+              </CommentList>
+            </CommentContainer>
+          </Section>
         </DetailCard>
       </ContentArea>
     </PaneWrapper>
@@ -236,16 +359,16 @@ const ContentArea = styled.div`
   display: flex;
   gap: 20px;
   padding: 24px;
-  overflow-y: auto;
   flex: 1;
+
+  overflow: hidden;
 
   @media (max-width: 1800px) {
     flex-direction: column;
-    padding: 16px; /* 좁은 화면에 맞춰 여백을 살짝 줄임 */
+    padding: 16px;
   }
 `;
 
-/* --- 왼쪽 프로필 카드 --- */
 const ProfileCard = styled.div`
   width: 280px;
   background-color: #f7f5fb;
@@ -254,11 +377,12 @@ const ProfileCard = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
 
   @media (max-width: 1800px) {
     width: 100%;
-    padding: 24px;
+    padding: 24px 0;
   }
 `;
 
@@ -268,23 +392,6 @@ const Avatar = styled.img`
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 20px;
-`;
-
-const Name = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-`;
-
-const Subtitle = styled.div`
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 24px;
-
-  span {
-    color: #3b82f6; /* 파란색 경력 텍스트 */
-    font-weight: 500;
-  }
 `;
 
 const InfoBox = styled.div`
@@ -312,27 +419,6 @@ const InfoItem = styled.div`
   gap: 8px;
 `;
 
-const ShareButton = styled.button`
-  width: 100%;
-  padding: 12px;
-  background-color: #ece8f4;
-  color: #333;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  margin-top: 32px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  &:hover {
-    background-color: #e2dcf0;
-  }
-`;
-
-/* --- 오른쪽 상세 카드 --- */
 const DetailCard = styled.div`
   flex: 1;
   background-color: #fff;
@@ -342,9 +428,10 @@ const DetailCard = styled.div`
   flex-direction: column;
   gap: 40px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  overflow-y: auto;
 
   @media (max-width: 1800px) {
-    width: 100%;
+    /* width: 100%; */
     padding: 24px;
     gap: 32px;
   }
@@ -356,27 +443,11 @@ const Section = styled.section`
   gap: 16px;
 `;
 
-const SectionTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0;
-  color: #111;
-`;
-
-/* AI 요약평 영역 */
 const AISummaryBox = styled.div`
   display: flex;
   gap: 24px;
   align-items: flex-start;
-`;
-
-const AIText = styled.p`
-  flex: 1;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #444;
-  margin: 0;
-  word-break: keep-all;
+  justify-content: space-between;
 `;
 
 const ScoreBox = styled.div`
@@ -389,11 +460,6 @@ const ScoreBox = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 8px;
-`;
-
-const ScoreLabel = styled.div`
-  font-size: 12px;
-  color: #666;
 `;
 
 const ScoreValue = styled.div`
@@ -413,10 +479,9 @@ const ProgressBarWrapper = styled.div`
 const ProgressBar = styled.div<{ percent: number }>`
   width: ${(props) => props.percent}%;
   height: 100%;
-  background-color: #7c3aed; /* 보라색 */
+  background-color: #7c3aed;
 `;
 
-/* 리스트 (기술, 이력 등) 영역 */
 const Row = styled.div`
   display: flex;
   padding: 12px 0;
@@ -425,12 +490,6 @@ const Row = styled.div`
   &:last-child {
     border-bottom: none;
   }
-`;
-
-const RowLabel = styled.div`
-  width: 120px;
-  font-size: 14px;
-  color: #666;
 `;
 
 const RowContent = styled.div`
@@ -462,38 +521,41 @@ const Tag = styled.span`
   font-size: 12px;
 `;
 
-/* 푸터 액션 */
-const FooterActions = styled.div`
+const CommentContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background-color: #faf9fb;
+  padding: 20px;
+  border-radius: 12px;
+`;
+
+const CommentInputWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const CommentList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const CommentItem = styled.div`
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const CommentHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto;
-  padding-top: 24px;
-`;
-
-const TextButton = styled.button`
-  background: none;
-  border: none;
-  color: #111;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 15px;
-  padding: 8px 0;
-`;
-
-const PrimaryButton = styled.button`
-  background-color: #7c3aed;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 14px 24px;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #6d28d9;
-  }
 `;
 
 export { CandidateDetailPane };

@@ -1,6 +1,6 @@
 import React, { forwardRef, useLayoutEffect, useRef } from "react";
 import styled, { css, RuleSet } from "styled-components";
-import tokens from "tokens";
+import tokens from "../../../utils/tokens";
 import { useAutoResize } from "./hooks";
 
 export type TextAreaVariant = "outline" | "subtle";
@@ -95,7 +95,7 @@ const AreaInput = forwardRef<HTMLTextAreaElement, AreaInputBaseProps>(
       variant,
       size = "medium",
       state = "default",
-      width = "100%",
+      width,
       height,
       minHeight,
       onChange,
