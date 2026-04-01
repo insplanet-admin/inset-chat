@@ -11,6 +11,15 @@ import Button from "./common/button/Button";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import { scrollbarStyle } from "./layouts";
+import RadioGroup, { useRadioGroup } from "./common/radio-group";
+
+const RATING_OPTIONS = [
+  { label: "★☆☆☆☆", value: 1 },
+  { label: "★★☆☆☆", value: 2 },
+  { label: "★★★☆☆", value: 3 },
+  { label: "★★★★☆", value: 4 },
+  { label: "★★★★★", value: 5 },
+];
 
 const CandidateDetailPane = () => {
   const { candidateId } = useParams();
@@ -18,6 +27,11 @@ const CandidateDetailPane = () => {
   const queryClient = useQueryClient();
 
   const { value: newComment, onChange, setValue } = useTextArea("");
+  const {
+    value: rating,
+    onChange: onRatingChange,
+    setValue: setRating,
+  } = useRadioGroup("0");
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["candidate", candidateId],
@@ -64,6 +78,17 @@ const CandidateDetailPane = () => {
     },
   });
 
+  const updateRatingMutation = useMutation({
+    mutationFn: async (newRating: number) => {
+      const { error } = await supabase
+        .from("resumes")
+        .update({ rating: newRating })
+        .eq("id", candidateId);
+
+      if (error) throw new Error(error.message);
+    },
+  });
+
   const handleCommentSubmit = () => {
     if (!newComment.trim()) return;
     addCommentMutation.mutate(newComment);
@@ -76,6 +101,17 @@ const CandidateDetailPane = () => {
       e.preventDefault();
       handleCommentSubmit();
     }
+  };
+
+  const handleRatingChange = (newRatingStr: string) => {
+    const newRatingNum = Number(newRatingStr);
+
+    queryClient.setQueryData(["candidate", candidateId], (oldData: any) => ({
+      ...oldData,
+      rating: newRatingNum,
+    }));
+
+    updateRatingMutation.mutate(newRatingNum);
   };
 
   if (isLoading) {
@@ -142,9 +178,11 @@ const CandidateDetailPane = () => {
                 AI 요약평 ✨
               </Text>
               <AISummaryBox>
-                <Text variant="bodyMd" weight="medium" color="#6D7178">
-                  {data.aiSummary}
-                </Text>
+                <SummaryTextWrapper>
+                  <Text variant="bodyMd" weight="medium" color="#6D7178">
+                    {data.aiSummary}
+                  </Text>
+                </SummaryTextWrapper>
                 <ScoreBox>
                   <Text variant="bodySm" weight="medium" color="#6D7178">
                     매칭 점수
@@ -226,6 +264,21 @@ const CandidateDetailPane = () => {
               <Text variant="headingXs" weight="bold">
                 평점 및 코멘트
               </Text>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  marginBottom: "8px",
+                }}
+              >
+                <RadioGroup
+                  name="candidate-rating"
+                  value={data.rating}
+                  options={RATING_OPTIONS}
+                  onChange={handleRatingChange}
+                  size="small"
+                />
+              </div>
 
               <CommentContainer>
                 <CommentInputWrapper>
@@ -285,6 +338,15 @@ const PaneWrapper = styled.aside`
   border-radius: 1rem;
   display: flex;
   flex-direction: column;
+`;
+
+const SummaryTextWrapper = styled.div`
+  flex: 1;
+  max-width: 400px;
+  min-width: 0;
+  word-break: keep-all;
+  white-space: pre-wrap;
+  line-height: 1.6;
 `;
 
 const Header = styled.div`

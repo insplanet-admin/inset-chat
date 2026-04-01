@@ -117,7 +117,7 @@ const postChatWithSupabase = async ({
           professional_summary.total_experience_months,
       );
       const majorExperience = professional_summary.major_achievement || "";
-      const internalRating = evaluation.internal_rating || 0;
+      const internalRating = c.rating || 0;
       const introduction =
         evaluation.one_line_review ||
         professional_summary.introduction ||

@@ -101,6 +101,7 @@ const StyledRadioGroup = styled.div<{ size: RadioSize }>`
     align-items: center;
     cursor: pointer;
     position: relative;
+    margin-right: 20px;
   }
 
   input {

@@ -60,6 +60,8 @@ const fetchAndDecryptCandidate = async (id: string) => {
         : [],
       frameworks: [],
     },
+
+    rating: data.rating || 0,
     workHistory: Array.isArray(rd?.work_experiences)
       ? rd.work_experiences.map((w: any) => ({
           period: `${w.start_date || ""} ~ ${w.end_date || "현재"}`,
