@@ -36,6 +36,7 @@ export type IconName =
   | 'EditBox'
   | 'EditPen'
   | 'Enter'
+  | 'error'
   | 'Exit'
   | 'Eye'
   | 'EyeOff'
@@ -77,6 +78,8 @@ export type IconName =
   | 'Options'
   | 'Positive'
   | 'Print'
+  | 'save'
+  | 'saveFill'
   | 'Search'
   | 'SearchDuotone'
   | 'SearchFilled'
@@ -91,7 +94,4 @@ export type IconName =
   | 'Wifi'
   | 'WifiOff'
   | 'ZoomIn'
-  | 'ZoomOut'
-  | 'error'
-  | 'save'
-  | 'saveFill';
+  | 'ZoomOut';

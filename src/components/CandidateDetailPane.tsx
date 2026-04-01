@@ -9,6 +9,8 @@ import Text from "./common/text/Text";
 import AreaInput from "./common/Input/AreaInput";
 import Button from "./common/button/Button";
 import styled from "styled-components";
+import { motion } from "framer-motion";
+import { scrollbarStyle } from "./layouts";
 
 const CandidateDetailPane = () => {
   const { candidateId } = useParams();
@@ -67,6 +69,15 @@ const CandidateDetailPane = () => {
     addCommentMutation.mutate(newComment);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.nativeEvent.isComposing) return;
+
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleCommentSubmit();
+    }
+  };
+
   if (isLoading) {
     return (
       <PaneWrapper style={{ justifyContent: "center", alignItems: "center" }}>
@@ -84,186 +95,194 @@ const CandidateDetailPane = () => {
     );
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.nativeEvent.isComposing) return;
-
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleCommentSubmit();
-    }
-  };
-
   return (
-    <PaneWrapper>
-      <Header>
-        <Text variant="headingSm" weight="bold">
-          PROFILE
-        </Text>
-        <IconButton style="ghost" onClick={() => navigate("..")}>
-          <Icon name="CloseL" />
-        </IconButton>
-      </Header>
-
-      <ContentArea>
-        <ProfileCard>
-          <Avatar src={data.profileImage} alt={data.name} />
+    <motion.div
+      // 초기 상태: 작고 투명함
+      initial={{ opacity: 0, scale: 0.9, x: 0 }}
+      // 나타날 때 상태: 원래 크기
+      animate={{ opacity: 1, scale: 1, x: 0 }}
+      // 사라질 때 상태 (AnimatePresence 사용 시)
+      exit={{ opacity: 0, scale: 0.9, x: 0 }}
+      transition={{
+        type: "spring", // 튕기는 듯한 물리 효과
+        stiffness: 300,
+        damping: 25,
+      }}
+      style={{}}
+    >
+      <PaneWrapper>
+        <Header>
           <Text variant="headingSm" weight="bold">
-            {data.name}
+            PROFILE
           </Text>
-          <Text variant="bodyMd" weight="medium" color="#00838A">
-            <span>{data.experience}</span> · {data.age}
-          </Text>
-          <InfoBox>
-            <InfoItem>{data.phone}</InfoItem>
-            <InfoItem>{data.email}</InfoItem>
-            <InfoItem>{data.address}</InfoItem>
-          </InfoBox>
-        </ProfileCard>
+          <IconButton style="ghost" onClick={() => navigate("..")}>
+            <Icon name="CloseL" />
+          </IconButton>
+        </Header>
 
-        <DetailCard>
-          <Section>
-            <Text variant="headingXs" weight="bold">
-              AI 요약평 ✨
+        <ContentArea>
+          <ProfileCard>
+            <Avatar src={data.profileImage} alt={data.name} />
+            <Text variant="headingSm" weight="bold">
+              {data.name}
             </Text>
-            <AISummaryBox>
-              <Text variant="bodyMd" weight="medium" color="#6D7178">
-                {data.aiSummary}
+            <Text variant="bodyMd" weight="medium" color="#00838A">
+              <span>{data.experience}</span> · {data.age}
+            </Text>
+            <InfoBox>
+              <InfoItem>{data.phone}</InfoItem>
+              <InfoItem>{data.email}</InfoItem>
+              <InfoItem>{data.address}</InfoItem>
+            </InfoBox>
+          </ProfileCard>
+
+          <DetailCard>
+            <Section>
+              <Text variant="headingXs" weight="bold">
+                AI 요약평 ✨
               </Text>
-              <ScoreBox>
-                <Text variant="bodySm" weight="medium" color="#6D7178">
-                  매칭 점수
-                </Text>
-                <ScoreValue>{data.matchScore}%</ScoreValue>
-                <ProgressBarWrapper>
-                  <ProgressBar percent={data.matchScore} />
-                </ProgressBarWrapper>
-              </ScoreBox>
-            </AISummaryBox>
-          </Section>
-
-          <Section>
-            <Text variant="headingXs" weight="bold">
-              기술
-            </Text>
-            <div>
-              <Row>
+              <AISummaryBox>
                 <Text variant="bodyMd" weight="medium" color="#6D7178">
-                  코딩언어
+                  {data.aiSummary}
                 </Text>
-                <TagList>
-                  {data.skills.languages.map((skill) => (
-                    <Tag key={skill}>{skill}</Tag>
-                  ))}
-                </TagList>
-              </Row>
-              <Row>
-                <Text variant="bodyMd" weight="medium" color="#6D7178">
-                  코딩언어
-                </Text>
-                <TagList>
-                  {data.skills.frameworks.map((skill) => (
-                    <Tag key={skill}>{skill}</Tag>
-                  ))}
-                </TagList>
-              </Row>
-            </div>
-          </Section>
-
-          <Section>
-            <Text variant="headingXs" weight="bold">
-              근무이력
-            </Text>
-            <div>
-              {data.workHistory.map((work, idx) => (
-                <Row key={idx}>
-                  <Text variant="bodyMd" weight="medium" color="#6D7178">
-                    {work.period}
+                <ScoreBox>
+                  <Text variant="bodySm" weight="medium" color="#6D7178">
+                    매칭 점수
                   </Text>
-                  <RowContent>
-                    {work.company} <span>· {work.role}</span>
-                  </RowContent>
-                </Row>
-              ))}
-            </div>
-          </Section>
+                  <ScoreValue>{data.matchScore}%</ScoreValue>
+                  <ProgressBarWrapper>
+                    <ProgressBar percent={data.matchScore} />
+                  </ProgressBarWrapper>
+                </ScoreBox>
+              </AISummaryBox>
+            </Section>
 
-          <Section>
-            <Text variant="headingXs" weight="bold">
-              주요경력
-            </Text>
-            <div>
-              {data.majorExperience.map((exp, idx) => (
-                <Row key={idx}>
+            <Section>
+              <Text variant="headingXs" weight="bold">
+                기술
+              </Text>
+              <div>
+                <Row>
                   <Text variant="bodyMd" weight="medium" color="#6D7178">
-                    {exp.period}
+                    코딩언어
                   </Text>
-
-                  <RowContent>
-                    {exp.project} <span>· {exp.role}</span>
-                  </RowContent>
+                  <TagList>
+                    {data.skills.languages.map((skill) => (
+                      <Tag key={skill}>{skill}</Tag>
+                    ))}
+                  </TagList>
                 </Row>
-              ))}
-            </div>
-          </Section>
+                <Row>
+                  <Text variant="bodyMd" weight="medium" color="#6D7178">
+                    코딩언어
+                  </Text>
+                  <TagList>
+                    {data.skills.frameworks.map((skill) => (
+                      <Tag key={skill}>{skill}</Tag>
+                    ))}
+                  </TagList>
+                </Row>
+              </div>
+            </Section>
 
-          <Section>
-            <Text variant="headingXs" weight="bold">
-              평점 및 코멘트
-            </Text>
-
-            <CommentContainer>
-              <CommentInputWrapper>
-                <AreaInput
-                  variant="outline"
-                  placeholder="후보자에 대한 평가나 메모를 남겨주세요."
-                  value={newComment}
-                  onChange={onChange}
-                  onKeyDown={handleKeyDown}
-                />
-
-                <div style={{ alignSelf: "flex-end" }}>
-                  <Button
-                    onClick={handleCommentSubmit}
-                    state={
-                      !newComment.trim() || addCommentMutation.isPending
-                        ? "disabled"
-                        : "default"
-                    }
-                  >
-                    {addCommentMutation.isPending ? "등록 중..." : "등록"}
-                  </Button>
-                </div>
-              </CommentInputWrapper>
-
-              <CommentList>
-                {comments.map((comment) => (
-                  <CommentItem key={comment.id}>
-                    <CommentHeader>
-                      <Text variant="bodyMd">{comment.author}</Text>
-                      <Text variant="bodySm" color="#9ca3af">
-                        {new Date(comment.created_at).toLocaleDateString(
-                          "ko-KR",
-                        )}
-                      </Text>
-                    </CommentHeader>
-                    <Text variant="bodyMd">{comment.content}</Text>
-                  </CommentItem>
+            <Section>
+              <Text variant="headingXs" weight="bold">
+                근무이력
+              </Text>
+              <div>
+                {data.workHistory.map((work, idx) => (
+                  <Row key={idx}>
+                    <Text variant="bodyMd" weight="medium" color="#6D7178">
+                      {work.period}
+                    </Text>
+                    <RowContent>
+                      {work.company} <span>· {work.role}</span>
+                    </RowContent>
+                  </Row>
                 ))}
-              </CommentList>
-            </CommentContainer>
-          </Section>
-        </DetailCard>
-      </ContentArea>
-    </PaneWrapper>
+              </div>
+            </Section>
+
+            <Section>
+              <Text variant="headingXs" weight="bold">
+                주요경력
+              </Text>
+              <div>
+                {data.majorExperience.map((exp, idx) => (
+                  <Row key={idx}>
+                    <Text variant="bodyMd" weight="medium" color="#6D7178">
+                      {exp.period}
+                    </Text>
+
+                    <RowContent>
+                      {exp.project} <span>· {exp.role}</span>
+                    </RowContent>
+                  </Row>
+                ))}
+              </div>
+            </Section>
+
+            <Section>
+              <Text variant="headingXs" weight="bold">
+                평점 및 코멘트
+              </Text>
+
+              <CommentContainer>
+                <CommentInputWrapper>
+                  <AreaInput
+                    variant="outline"
+                    placeholder="후보자에 대한 평가나 메모를 남겨주세요."
+                    value={newComment}
+                    onChange={onChange}
+                    onKeyDown={handleKeyDown}
+                  />
+
+                  <div style={{ alignSelf: "flex-end" }}>
+                    <Button
+                      onClick={handleCommentSubmit}
+                      state={
+                        !newComment.trim() || addCommentMutation.isPending
+                          ? "disabled"
+                          : "default"
+                      }
+                    >
+                      {addCommentMutation.isPending ? "등록 중..." : "등록"}
+                    </Button>
+                  </div>
+                </CommentInputWrapper>
+
+                <CommentList>
+                  {comments.map((comment) => (
+                    <CommentItem key={comment.id}>
+                      <CommentHeader>
+                        <Text variant="bodyMd">{comment.author}</Text>
+                        <Text variant="bodySm" color="#9ca3af">
+                          {new Date(comment.created_at).toLocaleDateString(
+                            "ko-KR",
+                          )}
+                        </Text>
+                      </CommentHeader>
+                      <Text variant="bodyMd">{comment.content}</Text>
+                    </CommentItem>
+                  ))}
+                </CommentList>
+              </CommentContainer>
+            </Section>
+          </DetailCard>
+        </ContentArea>
+      </PaneWrapper>
+    </motion.div>
   );
 };
 
 const PaneWrapper = styled.aside`
-  width: 100%;
+  min-width: max-content;
   max-width: 900px;
-  height: 100%;
+  height: stretch;
+  margin: 2rem;
   background-color: #fff;
-  border-left: 1px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
   display: flex;
   flex-direction: column;
 `;
@@ -349,6 +368,8 @@ const DetailCard = styled.div`
   gap: 40px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
   overflow-y: auto;
+
+  ${scrollbarStyle};
 
   @media (max-width: 1800px) {
     padding: 24px;

@@ -109,7 +109,9 @@ const CandidateCard = ({ data, onClick }) => {
 };
 
 const Card = styled.div`
-  width: 360px;
+  // width: 360px;
+  // TODO 왜 3.5이지 일단 패스
+  width: calc(50% - 3.5rem);
   background-color: #ffffff;
   border-radius: 24px;
   padding: 24px;

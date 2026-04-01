@@ -51,7 +51,7 @@ const postChatWithSupabase = async ({
       {
         query_embedding: queryVector,
         match_threshold: 0.4,
-        match_count: 3,
+        match_count: 4,
       },
     );
 

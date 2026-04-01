@@ -6,7 +6,7 @@ import {
   ScrollBody,
 } from "../components/layouts";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams, Outlet } from "react-router-dom";
 import { nanoid } from "nanoid";
@@ -23,6 +23,9 @@ const ChatRoom = () => {
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const isAITyping = useIsMutating({ mutationKey: ["postChatAI"] }) > 0;
+
+  const { candidateId } = useParams();
+  const isCandidatePanelOpen = !!candidateId;
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ["roomMessages", roomID],
@@ -58,6 +61,8 @@ const ChatRoom = () => {
     });
 
     setPrompt("");
+
+    //
   };
 
   // textarea에서 Enter키만 눌렀을 때 전송되도록 처리
@@ -80,17 +85,33 @@ const ChatRoom = () => {
     }
   };
 
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      // 방법 A: 즉시 이동
+      // scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+
+      // 방법 B: 부드럽게 이동 (선호됨)
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages]);
+
   return (
     <div
       style={{
         display: "flex",
         width: "100%",
         height: "100%",
+        gap: "1rem",
         overflow: "hidden",
       }}
     >
       <Main>
-        <ScrollBody>
+        <ScrollBody ref={scrollRef}>
           <ContentInner size="wide">
             <FixedTop>
               <div
@@ -116,7 +137,7 @@ const ChatRoom = () => {
             onKeyDown={handleKeyDown}
             onFileDrop={handleFileDrop}
           />
-          <Suggestions>
+          {/* <Suggestions>
             {[
               "신한은행 파견 근무를 위한 퍼블리셔는 어떤 역량이 필요해?",
               "오늘 서울 날씨 어때?",
@@ -124,7 +145,7 @@ const ChatRoom = () => {
             ].map((suggestion) => (
               <Suggestion key={suggestion}>{suggestion}</Suggestion>
             ))}
-          </Suggestions>
+          </Suggestions> */}
         </FixedBottom>
       </Main>
       <Outlet />

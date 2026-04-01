@@ -2,6 +2,7 @@ import { SyncLoader } from "react-spinners";
 import { AIChatBubble, MyChatBubble } from "./domain/ChatBubble";
 import { CandidateCard } from "./CandidateCard";
 import { useNavigate } from "react-router-dom";
+import Box from "./common/flex/box";
 
 const ChatMessages = ({ messages, isAITyping }) => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const ChatMessages = ({ messages, isAITyping }) => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <Box gap="1rem">
       {messages.map((mes) => {
         const isMine = mes.role == false;
         let candidatesArray = [];
@@ -32,13 +33,13 @@ const ChatMessages = ({ messages, isAITyping }) => {
           }
         }
 
-        if (candidatesArray.length > 0) {
+        const hasCandidates = candidatesArray.length > 0;
+        if (hasCandidates) {
           return (
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-            >
-              <span>해당 조건에 맞는 인력을 3명 찾았습니다.</span>
-              <div style={{ display: "flex", gap: "1rem" }}>
+            <Box key={mes.id} gap="1rem">
+              <span>해당 조건에 맞는 인력을 4명 찾았습니다.</span>
+              {/* TODO grid */}
+              <Box gap="1rem" direction="row" wrap>
                 {candidatesArray.map((candidate, idx) => (
                   <CandidateCard
                     key={candidate.id || idx}
@@ -46,8 +47,8 @@ const ChatMessages = ({ messages, isAITyping }) => {
                     onClick={() => cardClickHandler(candidate.id)}
                   />
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Box>
           );
         }
 
@@ -74,7 +75,7 @@ const ChatMessages = ({ messages, isAITyping }) => {
           />
         </div>
       )}
-    </div>
+    </Box>
   );
 };
 

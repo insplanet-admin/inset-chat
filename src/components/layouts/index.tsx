@@ -1,5 +1,22 @@
 import styled from "styled-components";
 
+import { css } from "styled-components";
+
+export const scrollbarStyle = css`
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+`;
+
 export const ScrollArea = styled.div`
   width: 100%;
   height: 100%; /* 부모의 높이를 상속 */
@@ -7,17 +24,7 @@ export const ScrollArea = styled.div`
   overflow-x: hidden;
   overflow-y: auto;
 
-  /* 커스텀 스크롤바 (선택 사항 - 브라우저 기본보다 훨씬 세련되게 보임) */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-  }
-  &:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-  }
+  ${scrollbarStyle};
 `;
 
 export const Page = styled.div<{ hasSidebar?: boolean }>`
@@ -69,7 +76,6 @@ export const FixedBottom = styled.div`
   bottom: 0;
   z-index: 100;
   background: #fff;
-  border-top: 1px solid #eee;
   padding: 16px;
 `;
 
@@ -77,7 +83,7 @@ export const ContentInner = styled.div<{
   size?: "narrow" | "wide" | "full" | null;
 }>`
   width: 100%;
-  margin: 0 auto; /* 중앙 정렬 */
+  margin: 0 auto;
 
   /* props.size에 따른 가변 너비 설정 */
   max-width: ${(props) => {
@@ -86,5 +92,6 @@ export const ContentInner = styled.div<{
     return "100%"; // full
   }};
 
-  padding: 0 20px; /* 양옆 최소 여백 */
+  padding: 0 2rem;
+  box-sizing: border-box;
 `;
