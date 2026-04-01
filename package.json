@@ -23,6 +23,7 @@
     "express": "^5.2.1",
     "file-saver": "^2.0.5",
     "file-type": "^21.3.0",
+    "framer-motion": "^12.38.0",
     "hwp.js": "^0.0.3",
     "lucide-react": "^0.563.0",
     "mammoth": "^1.12.0",

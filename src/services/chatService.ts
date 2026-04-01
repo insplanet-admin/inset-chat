@@ -1,12 +1,12 @@
 import { supabase } from "../utils/supabase";
 import { decryptJSON } from "../utils/encrypt";
-import { askOllama, getEmbedding } from "../api/ollama";
+import { askOllama, getEmbedding } from "../apis/ollama";
 import { formatExperience } from "../utils/formatters";
 import {
   CHAT_TYPE_MESSAGES,
   CHAT_WITH_SUPABASE_MESSAGES,
-} from "../constatns/chatPrompt";
-import { askGemini } from "../api/gemini";
+} from "../constants/chatPrompt";
+import { askGemini } from "../apis/gemini";
 
 export interface PostChatParams {
   id: string;
@@ -28,6 +28,7 @@ const postChatToType = async ({
       import.meta.env.VITE_GEMINI_FLASH_MODEL,
       CHAT_TYPE_MESSAGES(message),
       false,
+      { format: "json" },
     );
     try {
       const parsedData = JSON.parse(content);
@@ -148,6 +149,7 @@ const postChatWithSupabase = async ({
       import.meta.env.VITE_GEMINI_FLASH_MODEL,
       CHAT_WITH_SUPABASE_MESSAGES(message, JSON.stringify(minimalCandidates)),
       true,
+      { format: "json" },
     );
     return { text: resultText };
   } catch (error) {

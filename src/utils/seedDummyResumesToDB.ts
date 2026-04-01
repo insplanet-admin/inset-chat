@@ -1,4 +1,4 @@
-import { getEmbedding } from "../api/ollama";
+import { getEmbedding } from "../apis/ollama";
 import { decryptJSON, encryptJSON } from "./encrypt";
 import { supabase } from "./supabase";
 

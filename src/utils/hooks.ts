@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
-import { createRooms } from "../api/rooms";
-import { insertMessages } from "../api/messages";
+import { createRooms } from "../apis/rooms";
+import { insertMessages } from "../apis/messages";
 import { postChat } from "../services/chatService";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";

@@ -1,9 +1,9 @@
 import { supabase } from "../utils/supabase";
 import { encryptJSON } from "../utils/encrypt";
-import { askOllama, getEmbedding } from "../api/ollama";
+import { askOllama, getEmbedding } from "../apis/ollama";
 import { extractTextFromFile } from "../utils/fileParser";
-import { RESUME_PARSER_PROMPT } from "../constatns/resumePrompt";
-import { askGemini } from "../api/gemini";
+import { RESUME_PARSER_PROMPT } from "../constants/resumePrompt";
+import { askGemini } from "../apis/gemini";
 
 const parseAndSaveResume = async (file: File) => {
   try {
@@ -26,6 +26,7 @@ const parseAndSaveResume = async (file: File) => {
       import.meta.env.VITE_GEMINI_FLASH_MODEL,
       messages,
       true,
+      { format: "json" },
     );
 
     const startIndex = rawResponse.indexOf("{");

@@ -12,7 +12,7 @@ import { useNavigate, useParams, Outlet } from "react-router-dom";
 import { nanoid } from "nanoid";
 import ChatMessages from "../components/ChatMessages";
 import PromptInput from "../components/prompt/PromptInput";
-import { fetchMessages } from "../api/messages";
+import { fetchMessages } from "../apis/messages";
 import { parseAndSaveResume } from "../services/resumeService";
 import { useInsertMessage, useChatAI } from "../utils/hooks";
 import { useIsMutating } from "@tanstack/react-query";

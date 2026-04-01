@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { fetchRooms } from "../api/rooms.js";
+import { fetchRooms } from "../apis/rooms.js";
 import { useNavigate } from "react-router-dom";
 import MenuItem from "./menu-item/index.js";
 

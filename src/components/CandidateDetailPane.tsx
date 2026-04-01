@@ -277,7 +277,7 @@ const CandidateDetailPane = () => {
 
 const PaneWrapper = styled.aside`
   min-width: max-content;
-  max-width: 900px;
+  max-width: 640px;
   height: stretch;
   margin: 2rem;
   background-color: #fff;
