@@ -1,19 +1,27 @@
 import { supabase } from "../utils/supabase";
 
-export async function fetchRooms() {
-  const { data, error } = await supabase.from("Rooms").select("*");
+const fetchRooms = async (userId) => {
+  if (!userId) return [];
+
+  const { data, error } = await supabase
+    .from("Rooms")
+    .select("*")
+    .eq("userid", userId)
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data;
-}
+};
 
-export async function createRooms({ name }) {
+const createRooms = async ({ name, userId }) => {
   const { data, error } = await supabase
     .from("Rooms")
-    .insert({ name })
+    .insert({ name: name, userid: userId })
     .select("*")
     .single();
 
   if (error) throw error;
   return data; // 새로 만들어진 room row
-}
+};
+
+export { fetchRooms, createRooms };

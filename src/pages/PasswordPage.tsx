@@ -1,18 +1,36 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { supabase } from "../utils/supabase";
-import { encryptJSON } from "../utils/encrypt";
+import { decryptJSON, encryptJSON } from "../utils/encrypt";
 
 const PasswordPage = () => {
   const [password, setPassword] = useState("");
   const [isError, setIsError] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const session = localStorage.getItem("user_session");
+
+    if (session) {
+      try {
+        const decryptedData = decryptJSON(session) as {
+          id: string;
+          name: string;
+        };
+
+        if (decryptedData && decryptedData.id) {
+          navigate("/chat", { replace: true });
+        }
+      } catch (error) {
+        localStorage.removeItem("user_session");
+      }
+    }
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const CORRECT_PASSWORD = "1234";
     try {
       const { data, error } = await supabase
         .from("user")

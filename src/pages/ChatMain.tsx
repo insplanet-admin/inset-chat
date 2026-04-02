@@ -8,6 +8,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { nanoid } from "nanoid";
 
 import { useCreateRoom, useInsertMessage, useChatAI } from "../utils/hooks";
+import { getUser } from "../utils/getUser";
 
 const ChatMain = () => {
   const [message, setMessage] = useState("");
@@ -17,6 +18,8 @@ const ChatMain = () => {
   const insertMessage = useInsertMessage();
   const chatAI = useChatAI(insertMessage.mutate);
 
+  const user = getUser();
+
   const handleSubmit = async (event) => {
     if (event) event.preventDefault();
     if (!message.trim()) return;
@@ -24,7 +27,10 @@ const ChatMain = () => {
     try {
       setMessage("");
 
-      const newRoom = await createRoom.mutateAsync({ name: message });
+      const newRoom = await createRoom.mutateAsync({
+        name: message,
+        userId: user.id,
+      });
       const newRoomId = String(newRoom.id);
 
       insertMessage.mutate({
