@@ -4,7 +4,7 @@ import Spacer from "../components/Spacer";
 import Text from "../components/common/text/Text";
 import PromptInput from "../components/prompt/PromptInput";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { nanoid } from "nanoid";
 
 import { useCreateRoom, useInsertMessage, useChatAI } from "../utils/hooks";

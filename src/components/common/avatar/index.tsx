@@ -18,6 +18,36 @@ type AvatarProps =
   | (Common & { style: "emoji"; emoji: string })
   | (Common & { style: "icon"; icon?: React.ReactNode });
 
+const Avatar = (props: AvatarProps) => {
+  const size = props.size;
+  const state = props.state ?? "default";
+
+  const isInteractive = !!props.onClick;
+  const disabled = props.disabled ?? state == "disabled";
+
+  const Wrapper = isInteractive ? Clickable : NonClickable;
+
+  return (
+    <Wrapper
+      $size={size}
+      $state={state}
+      {...(isInteractive
+        ? { onClick: props.onClick, disabled, type: "button" as const }
+        : {})}
+    >
+      {props.style === "photo" ? (
+        <img src={props.src} alt={props.alt ?? "avatar"} />
+      ) : props.style === "text" ? (
+        <span>{props.text}</span>
+      ) : props.style === "emoji" ? (
+        <span>{props.emoji}</span>
+      ) : (
+        <IconWrap>{props.icon ?? <DefaultUserIcon />}</IconWrap>
+      )}
+    </Wrapper>
+  );
+};
+
 const avatarBase = css<{ $size: number; $state: AvatarState }>`
   display: flex;
   align-items: center;
@@ -128,32 +158,4 @@ function DefaultUserIcon() {
   );
 }
 
-export const Avatar = (props: AvatarProps) => {
-  const size = props.size;
-  const state = props.state ?? "default";
-
-  const isInteractive = !!props.onClick;
-  const disabled = props.disabled ?? state == "disabled";
-
-  const Wrapper = isInteractive ? Clickable : NonClickable;
-
-  return (
-    <Wrapper
-      $size={size}
-      $state={state}
-      {...(isInteractive
-        ? { onClick: props.onClick, disabled, type: "button" as const }
-        : {})}
-    >
-      {props.style === "photo" ? (
-        <img src={props.src} alt={props.alt ?? "avatar"} />
-      ) : props.style === "text" ? (
-        <span>{props.text}</span>
-      ) : props.style === "emoji" ? (
-        <span>{props.emoji}</span>
-      ) : (
-        <IconWrap>{props.icon ?? <DefaultUserIcon />}</IconWrap>
-      )}
-    </Wrapper>
-  );
-};
+export { Avatar };

@@ -1,22 +1,44 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { seedDummyResumesToDB } from "../utils/seedDummyResumesToDB";
+import { supabase } from "../utils/supabase";
+import { encryptJSON } from "../utils/encrypt";
 
 const PasswordPage = () => {
   const [password, setPassword] = useState("");
   const [isError, setIsError] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const CORRECT_PASSWORD = "1234";
+    try {
+      const { data, error } = await supabase
+        .from("user")
+        .select("id, name")
+        .eq("password", password)
+        .maybeSingle();
 
-    if (password === CORRECT_PASSWORD) {
-      setIsError(false);
-      navigate("/chat");
-    } else {
+      if (error) throw new Error(error.message);
+
+      if (data) {
+        const sessionData = {
+          id: data.id,
+          name: data.name,
+        };
+
+        const encryptedSession = encryptJSON(sessionData);
+
+        localStorage.setItem("user_session", encryptedSession);
+
+        navigate("/chat");
+      } else {
+        setIsError(true);
+        setPassword("");
+      }
+    } catch (err) {
+      console.error("인증 실패:", err);
       setIsError(true);
       setPassword("");
     }

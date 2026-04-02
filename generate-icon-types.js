@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 // 1. 경로 설정
 const ICONS_DIR = path.join(__dirname, "src/assets/icons");
-const OUTPUT_DIR = path.join(__dirname, "src/components/Icon");
+const OUTPUT_DIR = path.join(__dirname, "src/components/common/Icon");
 const OUTPUT_FILE = path.join(OUTPUT_DIR, "icon-types.ts");
 const SPRITE_OUTPUT_DIR = path.join(__dirname, "public");
 const SPRITE_OUTPUT_FILE = path.join(SPRITE_OUTPUT_DIR, "sprite.svg");

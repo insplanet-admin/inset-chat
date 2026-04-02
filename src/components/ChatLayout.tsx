@@ -5,10 +5,19 @@ import Row from "./Row";
 import ConversationArea from "./ConversationArea";
 
 import MenuItem from "./menu-item";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, useOutletContext } from "react-router-dom";
+import Text from "./common/text/Text";
+import Icon from "./common/Icon/Icon";
+import { Avatar } from "./common/avatar";
+
+type AuthContextType = {
+  user: { id: string; name: string };
+};
 
 const ChatLayout = () => {
   const navigate = useNavigate();
+
+  const { user } = useOutletContext<AuthContextType>();
 
   return (
     <Page hasSidebar>
@@ -24,6 +33,32 @@ const ChatLayout = () => {
 
         <Spacer size={1} />
         <ConversationArea />
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "flex-end",
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "12px",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              localStorage.removeItem("user_session");
+              navigate("/");
+            }}
+          >
+            <Avatar style="icon" size={25} icon={<Icon name="Profile" />} />
+            <Text variant="bodyLg">{user.name}</Text>
+            <Icon name="Exit" size={20} />
+          </div>
+        </div>
       </Sidebar>
 
       <Outlet />

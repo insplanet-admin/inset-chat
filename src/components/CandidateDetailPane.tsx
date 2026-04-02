@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { supabase } from "../utils/supabase";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAndDecryptCandidate } from "../services/candidateService";
@@ -12,6 +12,7 @@ import styled from "styled-components";
 import { motion } from "framer-motion";
 import { scrollbarStyle } from "./layouts";
 import RadioGroup, { useRadioGroup } from "./common/radio-group";
+import { getUser } from "../utils/getUser";
 
 const RATING_OPTIONS = [
   { label: "★☆☆☆☆", value: 1 },
@@ -25,6 +26,7 @@ const CandidateDetailPane = () => {
   const { candidateId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const user = getUser();
 
   const { value: newComment, onChange, setValue } = useTextArea("");
   const {
@@ -61,7 +63,7 @@ const CandidateDetailPane = () => {
         .insert([
           {
             resume_id: candidateId,
-            author: "대표님", // 비밀번호를 이용
+            author: user.name,
             content: content,
           },
         ])
