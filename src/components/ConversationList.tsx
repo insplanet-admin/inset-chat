@@ -1,8 +1,14 @@
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
+import {
+  QueryErrorResetBoundary,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { SyncLoader } from "react-spinners";
-import ConversationList from "./ConversationList";
+import MenuItem from "./menu-item";
+import { fetchRooms } from "../apis/rooms";
+import { getUser } from "../utils/getUser";
+import { useNavigate } from "react-router-dom";
 
 const override = {
   display: "block",
@@ -28,11 +34,18 @@ function RoomsSkeleton() {
   );
 }
 
-function RoomsErrorFallback({ error, resetErrorBoundary }) {
+function RoomsErrorFallback({
+  error,
+  resetErrorBoundary,
+}: {
+  error: unknown;
+  resetErrorBoundary: () => void;
+}) {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ marginBottom: 8 }}>
-        방 목록을 불러오지 못했어요: {error.message}
+        방 목록을 불러오지 못했어요:{" "}
+        {error instanceof Error ? error.message : String(error)}
       </div>
       <button type="button" onClick={resetErrorBoundary}>
         다시 시도
@@ -41,13 +54,31 @@ function RoomsErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
-function ConversationArea() {
+function ConversationList() {
+  const navigate = useNavigate();
+
+  const user = getUser();
+
+  const { data: rooms } = useSuspenseQuery({
+    queryKey: ["rooms", user?.id],
+    queryFn: () => fetchRooms(user?.id),
+  });
+
   return (
     <QueryErrorResetBoundary>
       {({ reset }) => (
         <ErrorBoundary onReset={reset} FallbackComponent={RoomsErrorFallback}>
           <Suspense fallback={<RoomsSkeleton />}>
-            <ConversationList />
+            <div className="roomsList">
+              {rooms.map((room) => (
+                <MenuItem
+                  key={room.id}
+                  onClick={() => navigate(`/chat/${room.id}`)}
+                >
+                  {room.name}
+                </MenuItem>
+              ))}
+            </div>
           </Suspense>
         </ErrorBoundary>
       )}
@@ -55,4 +86,4 @@ function ConversationArea() {
   );
 }
 
-export default ConversationArea;
+export default ConversationList;

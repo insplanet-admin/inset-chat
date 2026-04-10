@@ -94,7 +94,6 @@ const ChatMain = () => {
           onFileDrop={handleFileDrop}
         />
       </CenterWrapper>
-      <div>123</div>
     </Main>
   );
 };

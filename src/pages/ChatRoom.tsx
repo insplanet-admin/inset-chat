@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams, Outlet } from "react-router-dom";
 import { nanoid } from "nanoid";
-import ChatMessages from "../components/ChatMessages";
+import ConversationArea from "../components/ConversationArea";
 import PromptInput from "../components/prompt/PromptInput";
 import { fetchMessages } from "../apis/messages";
 import { parseAndSaveResume } from "../services/resumeService";
@@ -124,7 +124,7 @@ const ChatRoom = () => {
                 room id
               </div>
             </FixedTop>
-            <ChatMessages messages={messages} isAITyping={isAITyping} />
+            <ConversationArea messages={messages} isAITyping={isAITyping} />
           </ContentInner>
         </ScrollBody>
         <FixedBottom>
