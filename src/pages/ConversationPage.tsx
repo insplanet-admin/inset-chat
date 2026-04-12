@@ -6,86 +6,42 @@ import {
   ScrollBody,
 } from "../components/layouts";
 
-import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams, Outlet } from "react-router-dom";
-import { nanoid } from "nanoid";
-import ChatMessages from "../components/ChatMessages";
+import { useEffect, useRef } from "react";
+import { useParams, Outlet } from "react-router-dom";
+import ConversationArea from "../components/ConversationArea";
 import PromptInput from "../components/prompt/PromptInput";
-import { fetchMessages } from "../apis/messages";
-import { parseAndSaveResume } from "../services/resumeService";
-import { useInsertMessage, useChatAI } from "../utils/hooks";
 import { useIsMutating } from "@tanstack/react-query";
+import {
+  useConversationResponse,
+  useConversationMessage,
+} from "../hooks/queries";
+import { useChatSubmit } from "../hooks/useChatSubmit";
+import { getUser } from "../utils/getUser";
+import { useConversation } from "../hooks/useConversation";
 
-const ChatRoom = () => {
+const ConversationPage = () => {
+  const user = getUser();
   const { id: roomID } = useParams();
-  const qc = useQueryClient();
-  const navigate = useNavigate();
-  const [prompt, setPrompt] = useState("");
   const isAITyping = useIsMutating({ mutationKey: ["postChatAI"] }) > 0;
 
   const { candidateId } = useParams();
   const isCandidatePanelOpen = !!candidateId;
 
-  const { data: messages = [], isLoading } = useQuery({
-    queryKey: ["roomMessages", roomID],
-    queryFn: () => fetchMessages(roomID),
-    enabled: !!roomID,
-    select: (data) =>
-      data.map((m) => ({
-        id: m.id,
-        role: m.user_id === 1004 ? false : true,
-        content: m.content,
-        status: m.status ?? "done",
-        created_at: m.created_at,
-      })),
-  });
+  const conversation = useConversation(roomID);
+  const message = useConversationMessage();
+  const response = useConversationResponse(message.mutate);
 
-  const insertMessage = useInsertMessage();
-  const chatAI = useChatAI(insertMessage.mutate);
-
-  const handleSubmit = (e) => {
-    if (e) e.preventDefault();
-    if (!prompt.trim()) return;
-
-    insertMessage.mutate({
-      content: prompt,
-      roomId: roomID,
+  const { prompt, handleChange, handleKeyDown, handleSubmit, handleFileDrop } =
+    useChatSubmit({
+      roomID: roomID,
+      user: user || { id: "" },
+      conversation: conversation,
+      message,
+      response,
     });
 
-    // AI에게 답변 요청 (로딩 말풍선)
-    chatAI.mutate({
-      message: prompt,
-      id: nanoid(),
-      roomId: roomID,
-    });
-
-    setPrompt("");
-
-    //
-  };
-
-  // textarea에서 Enter키만 눌렀을 때 전송되도록 처리
-  const handleKeyDown = (event) => {
-    if (event.nativeEvent.isComposing) return;
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      handleSubmit(event);
-    }
-  };
-
-  const handleFileDrop = async (file) => {
-    console.log("파일 분석 시작:", file.name);
-    try {
-      const savedData = await parseAndSaveResume(file);
-      console.log("saveData", savedData);
-      qc.invalidateQueries({ queryKey: ["roomMessages", roomID] });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const scrollRef = useRef(null);
+  // 메시지가 추가될 때마다 스크롤이 가장 아래로 이동하도록 설정
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -98,7 +54,7 @@ const ChatRoom = () => {
         behavior: "smooth",
       });
     }
-  }, [messages]);
+  }, [conversation]);
 
   return (
     <div
@@ -124,15 +80,13 @@ const ChatRoom = () => {
                 room id
               </div>
             </FixedTop>
-            <ChatMessages messages={messages} isAITyping={isAITyping} />
+            <ConversationArea messages={messages} isAITyping={isAITyping} />
           </ContentInner>
         </ScrollBody>
         <FixedBottom>
           <PromptInput
             value={prompt}
-            setPrompt={(e) => {
-              setPrompt(e.target.value);
-            }}
+            setPrompt={handleChange}
             onSubmit={handleSubmit}
             onKeyDown={handleKeyDown}
             onFileDrop={handleFileDrop}
@@ -171,4 +125,4 @@ const Suggestion = ({
   );
 };
 
-export default ChatRoom;
+export default ConversationPage;

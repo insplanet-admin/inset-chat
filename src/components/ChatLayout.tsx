@@ -2,13 +2,14 @@ import { Page, Sidebar } from "./layouts";
 
 import Spacer from "./Spacer";
 import Row from "./Row";
-import ConversationArea from "./ConversationArea";
+import ConversationList from "./ConversationList";
 
 import MenuItem from "./menu-item";
 import { useNavigate, Outlet, useOutletContext } from "react-router-dom";
 import Text from "./common/text/Text";
 import Icon from "./common/Icon/Icon";
 import { Avatar } from "./common/avatar";
+import Box from "./common/flex/box";
 
 type AuthContextType = {
   user: { id: string; name: string };
@@ -27,38 +28,25 @@ const ChatLayout = () => {
         </Row>
         <Spacer size={4} />
         <Spacer size={4} />
-        <Spacer size={4} />
 
         <MenuItem onClick={() => navigate(`/chat`)}>새로운 채팅</MenuItem>
 
-        <Spacer size={1} />
-        <ConversationArea />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "flex-end",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: "12px",
-              alignItems: "center",
-              cursor: "pointer",
-            }}
+        <ConversationList />
+
+        <Row gap={12} justify="space-between" style={{ marginTop: "auto" }}>
+          <Box direction="row" gap={8}>
+            <Avatar style="icon" size={25} icon={<Icon name="Profile" />} />
+            <Text variant="bodyLg">{user.name}</Text>
+          </Box>
+          <button
             onClick={() => {
               localStorage.removeItem("user_session");
               navigate("/");
             }}
           >
-            <Avatar style="icon" size={25} icon={<Icon name="Profile" />} />
-            <Text variant="bodyLg">{user.name}</Text>
             <Icon name="Exit" size={20} />
-          </div>
-        </div>
+          </button>
+        </Row>
       </Sidebar>
 
       <Outlet />

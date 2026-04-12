@@ -41,7 +41,7 @@ input {
   color: #888;
 }
 
-.roomsList {
+.conversationList {
   display: flex;
   flex-direction: column;
   /* overflow: auto; */
