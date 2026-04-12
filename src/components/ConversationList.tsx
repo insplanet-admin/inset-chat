@@ -6,9 +6,9 @@ import {
 } from "@tanstack/react-query";
 import { SyncLoader } from "react-spinners";
 import MenuItem from "./menu-item";
-import { fetchRooms } from "../apis/rooms";
 import { getUser } from "../utils/getUser";
 import { useNavigate } from "react-router-dom";
+import { fetchConversations } from "../apis/conversation";
 
 const override = {
   display: "block",
@@ -18,7 +18,7 @@ const override = {
 
 function RoomsSkeleton() {
   return (
-    <div className="roomsList">
+    <div className="conversationList">
       <div className="loader">
         <SyncLoader
           color={"#ffffff"}
@@ -59,9 +59,9 @@ function ConversationList() {
 
   const user = getUser();
 
-  const { data: rooms } = useSuspenseQuery({
-    queryKey: ["rooms", user?.id],
-    queryFn: () => fetchRooms(user?.id),
+  const { data: conversations } = useSuspenseQuery({
+    queryKey: ["conversations", user?.id],
+    queryFn: () => fetchConversations(user?.id),
   });
 
   return (
@@ -69,13 +69,13 @@ function ConversationList() {
       {({ reset }) => (
         <ErrorBoundary onReset={reset} FallbackComponent={RoomsErrorFallback}>
           <Suspense fallback={<RoomsSkeleton />}>
-            <div className="roomsList">
-              {rooms.map((room) => (
+            <div className="conversationList">
+              {conversations.map((conversation) => (
                 <MenuItem
-                  key={room.id}
-                  onClick={() => navigate(`/chat/${room.id}`)}
+                  key={conversation.id}
+                  onClick={() => navigate(`/chat/${conversation.id}`)}
                 >
-                  {room.name}
+                  {conversation.name}
                 </MenuItem>
               ))}
             </div>
