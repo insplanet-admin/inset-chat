@@ -24,14 +24,15 @@ const postChatToType = async ({
   message,
 }: PostChatParams): Promise<ChatIntent> => {
   try {
-    const content = await askGemini(
-      import.meta.env.VITE_GEMINI_FLASH_MODEL,
+    const content = await askOllama(
+      import.meta.env.VITE_LLAMA_TEXT_MODEL,
       CHAT_TYPE_MESSAGES(message),
       false,
       { format: "json" },
     );
     try {
       const parsedData = JSON.parse(content);
+      console.log(parsedData);
       return parsedData.type === "search" ? "search" : "chat";
     } catch {
       return "chat";
@@ -143,13 +144,46 @@ const postChatWithSupabase = async ({
     });
 
     console.log("복호화 :", minimalCandidates);
-    const resultText = await askGemini(
-      import.meta.env.VITE_GEMINI_FLASH_MODEL,
-      CHAT_WITH_SUPABASE_MESSAGES(message, JSON.stringify(minimalCandidates)),
-      true,
-      { format: "json" },
-    );
-    return { text: resultText };
+
+    const evaluationPromises = minimalCandidates.map(async (candidate) => {
+      try {
+        const singleCandidateJson = JSON.stringify([candidate]);
+
+        const resultText = await askOllama(
+          import.meta.env.VITE_LLAMA_TEXT_MODEL,
+          CHAT_WITH_SUPABASE_MESSAGES(message, singleCandidateJson),
+          false,
+          {
+            num_ctx: 4096,
+            temperature: 0.1,
+            stop: ["<|endoftext|>", "<|im_start|>", "<|im_end|>", "Question:"],
+          },
+        );
+
+        console.log(resultText);
+
+        const parsedData = JSON.parse(resultText);
+        return Array.isArray(parsedData) ? parsedData[0] : parsedData;
+      } catch (err) {
+        console.error(`[${candidate.name}] 평가 중 AI 파싱 오류 발생 :`, err);
+
+        return {
+          ...candidate,
+          reason: "AI 분석 중 오류가 발생하여 사유를 생성하지 못했습니다.",
+          details: {
+            ...candidate.details,
+            major_experience: "확인 불가",
+          },
+        };
+      }
+    });
+
+    const evaluatedCandidates = await Promise.all(evaluationPromises);
+
+    const finalResultString = JSON.stringify(evaluatedCandidates);
+    console.log("최종 합쳐진 AI 평가 결과:", finalResultString);
+
+    return { text: finalResultString };
   } catch (error) {
     console.error("AI Vector Search error:", error);
     throw new Error("AI 처리 및 벡터 검색 중 오류가 발생했습니다.");

@@ -1,4 +1,4 @@
-const OLLAMA_URL = "http://192.168.68.128:11434";
+const OLLAMA_URL = "http://192.168.68.130:11434";
 
 const getEmbedding = async (text: string): Promise<number[]> => {
   const response = await fetch(`${OLLAMA_URL}/api/embeddings`, {
@@ -55,6 +55,7 @@ const askOllama = async (
         const parsedChunk = JSON.parse(line);
         if (parsedChunk.message?.content) {
           rawResponse += parsedChunk.message.content;
+          console.log(`[실시간]: ${parsedChunk.message?.content}`);
         }
       } catch (e) {
         console.error("청크 파싱 에러:", e);
