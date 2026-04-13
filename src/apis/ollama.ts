@@ -1,4 +1,4 @@
-const OLLAMA_URL = "http://192.168.68.107:11434";
+const OLLAMA_URL = "http://192.168.68.128:11434";
 
 const getEmbedding = async (text: string): Promise<number[]> => {
   const response = await fetch(`${OLLAMA_URL}/api/embeddings`, {
