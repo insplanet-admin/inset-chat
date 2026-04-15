@@ -6,7 +6,6 @@ import {
   CHAT_TYPE_MESSAGES,
   CHAT_WITH_SUPABASE_MESSAGES,
 } from "../constants/chatPrompt";
-import { askGemini } from "../apis/gemini";
 
 export interface PostChatParams {
   id: string;
@@ -93,8 +92,8 @@ const postChatWithSupabase = async ({
       const birthYear = birthYearStr ? parseInt(birthYearStr, 10) : null;
 
       let finalEdu = "학력 정보 없음";
-      if (Array.isArray(rd?.educations) && rd.educations.length > 0) {
-        const edu = rd.educations[0];
+      if (Array.isArray(educations) && educations.length > 0) {
+        const edu = educations[0];
         finalEdu =
           `${edu.school_name || ""} ${edu.major || ""} ${edu.graduation_status || ""}`.trim();
       }
@@ -145,40 +144,62 @@ const postChatWithSupabase = async ({
 
     console.log("복호화 :", minimalCandidates);
 
-    const evaluationPromises = minimalCandidates.map(async (candidate) => {
+    const evaluatedCandidates = [];
+    for (const candidate of minimalCandidates) {
       try {
-        const singleCandidateJson = JSON.stringify([candidate]);
+        console.log(`[${candidate.name}] AI 분석 시작...`);
+
+        const candidateForLLM = {
+          introduction: candidate.introduction,
+          skills: candidate.details.skills,
+          projects: candidate.projects,
+        };
+
+        const singleCandidateJson = JSON.stringify(candidateForLLM);
+
+        console.log(singleCandidateJson);
 
         const resultText = await askOllama(
           import.meta.env.VITE_LLAMA_TEXT_MODEL,
           CHAT_WITH_SUPABASE_MESSAGES(message, singleCandidateJson),
-          false,
+          true,
           {
-            num_ctx: 4096,
+            num_ctx: 8196,
             temperature: 0.1,
             stop: ["<|endoftext|>", "<|im_start|>", "<|im_end|>", "Question:"],
           },
         );
 
-        console.log(resultText);
+        console.log(`[${candidate.name}] AI 응답:`, resultText);
 
-        const parsedData = JSON.parse(resultText);
-        return Array.isArray(parsedData) ? parsedData[0] : parsedData;
+        let parsedData = JSON.parse(resultText);
+        parsedData = Array.isArray(parsedData) ? parsedData[0] : parsedData;
+
+        evaluatedCandidates.push({
+          ...candidate,
+          details: {
+            ...candidate.details,
+            major_experience: parsedData.major_experience || "관련 경험 없음",
+            skills: parsedData.skills || candidate.details.skills,
+          },
+          reason: parsedData.reason || "조건에 부합하는 인재입니다.",
+          projects: undefined,
+        });
+
+        console.log(evaluatedCandidates);
       } catch (err) {
         console.error(`[${candidate.name}] 평가 중 AI 파싱 오류 발생 :`, err);
 
-        return {
+        evaluatedCandidates.push({
           ...candidate,
           reason: "AI 분석 중 오류가 발생하여 사유를 생성하지 못했습니다.",
           details: {
             ...candidate.details,
             major_experience: "확인 불가",
           },
-        };
+        });
       }
-    });
-
-    const evaluatedCandidates = await Promise.all(evaluationPromises);
+    }
 
     const finalResultString = JSON.stringify(evaluatedCandidates);
     console.log("최종 합쳐진 AI 평가 결과:", finalResultString);

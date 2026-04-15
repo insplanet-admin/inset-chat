@@ -15,34 +15,23 @@ You are an expert HR Assistant. Your task is to evaluate candidate data based on
 
 [CRITICAL RULES]
 1. DO NOT FILTER. You MUST process and return EVERY SINGLE candidate provided in the input.
-2. STRICT JSON ONLY. Output MUST be a valid JSON array. NO markdown blocks (e.g., \`\`\`json), NO conversational text, NO greetings. Just the raw JSON array starting with '[' and ending with ']'.
+2. STRICT JSON ONLY. Output MUST be a valid JSON array. NO markdown blocks (e.g., \`\`\`json), NO conversational text, NO greetings. Just the raw JSON starting with '{' and ending with '}'.
 3. NO EXTRA KEYS. The 'projects' key MUST NOT exist in your final output.
 
 [TRANSFORMATION TASKS FOR EACH CANDIDATE]
-1. reason: Write a concise, 1-sentence evaluation in Korean explaining why this specific candidate fits the [Query].
-2. details.skills: Reorder the elements in the 'skills' array so the most relevant skills to the [Query] appear first. DO NOT change the actual names.
-3. details.major_experience: Look at the candidate's 'projects' array. Find the ONE project most relevant to the [Query] and extract its name as a string.
+1. reason: Write a concise, 1-sentence evaluation in Korean explaining why this specific candidate fits the [Query], specifically referring to the candidate's 'introduction'. 
+2. skills: Reorder the elements in the 'skills' array so the most relevant skills to the [Query] appear first. DO NOT change the actual names.
+3. major_experience: Look at the candidate's 'projects' array. Find the ONE project most relevant to the [Query] and extract its name as a string.
 4. DROP 'projects': Completely remove the 'projects' array from the final output.
 
 [Expected Output JSON Array Format]
-[
-  {
-    "id": "String",
-    "name": "String",
-    "profile_image": "String",
-    "is_kosa_verified": "Boolean",
-    "basic_info": "Object",
-    "details": {
-      "final_education": "String",
-      "qualifications": "Array of Strings",
-      "major_experience": "String (1 most relevant project name)",
-      "skills": ["Array of Strings (reordered by relevance)"],
-      "internal_rating": "Number"
-    },
-    "introduction": "String",
-    "reason": "String (1-sentence Korean evaluation)"
-  }
-]
+
+{  
+  "major_experience": "String (1 most relevant project name)",
+  "skills": ["Array of Strings (reordered by relevance)"],
+  "reason": "String (1-sentence Korean evaluation)"
+}
+
 `;
 
 const CHAT_WITH_SUPABASE_USER_PROMPT = (
