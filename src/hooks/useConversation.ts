@@ -3,7 +3,7 @@ import { fetchConversation } from "../apis/conversation";
 
 interface Message {
   id: string | number;
-  user_id: number;
+  is_user: boolean;
   content: string;
   status?: string;
   created_at: string;
@@ -25,7 +25,7 @@ export const useConversation = (roomID: string | number | undefined) => {
     select: (data) =>
       data.map((m) => ({
         id: m.id,
-        role: m.user_id === 1004 ? false : true,
+        role: m.is_user,
         content: m.content,
         status: m.status ?? "done",
         created_at: m.created_at,

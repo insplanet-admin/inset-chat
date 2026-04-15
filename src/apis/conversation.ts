@@ -43,12 +43,12 @@ async function fetchConversation(roomId: any) {
 // insert conversation / 추가 후 데이터 가져오기.
 async function createConversationMessage({
   content,
-  userId = 1004,
+  isUser = false,
   roomId,
 }: any) {
   const { data, error } = await supabase
     .from("messages")
-    .insert({ content: content, user_id: userId, room_id: roomId })
+    .insert({ content: content, is_user: isUser, room_id: roomId })
     .select("*")
     .single();
 

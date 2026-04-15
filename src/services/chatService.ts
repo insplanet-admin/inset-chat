@@ -12,6 +12,7 @@ export interface PostChatParams {
   id: string;
   message: string;
   roomId: string;
+  isUser: boolean;
 }
 
 export interface ChatResponse {

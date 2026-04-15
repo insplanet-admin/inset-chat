@@ -45,10 +45,6 @@ const ConversationPage = () => {
 
   useEffect(() => {
     if (scrollRef.current) {
-      // 방법 A: 즉시 이동
-      // scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-
-      // 방법 B: 부드럽게 이동 (선호됨)
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
         behavior: "smooth",

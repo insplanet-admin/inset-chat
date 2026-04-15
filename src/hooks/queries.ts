@@ -8,7 +8,7 @@ import { postChat } from "../services/chatService";
 
 interface Message {
   id: string;
-  user_id: number;
+  is_user: boolean;
   content: string;
   status?: "done" | "pending" | "error";
   created_at?: string;
@@ -87,7 +87,8 @@ const useConversationMessage = () => {
   return useMutation({
     mutationFn: createConversationMessage,
     onMutate: async (variables) => {
-      const { roomId, content, userId } = variables;
+      const { roomId, content, isUser } = variables;
+
       await qc.cancelQueries({ queryKey: ["conversation", roomId] });
       const previousMessages = qc.getQueryData(["conversation", roomId]);
 
@@ -97,7 +98,7 @@ const useConversationMessage = () => {
         {
           id: nanoid(),
           content: content,
-          user_id: userId || 1004,
+          is_user: isUser || false,
           status: "pending",
         },
       ]);
@@ -135,7 +136,7 @@ const useConversationResponse = (createConversationResponseMutate: any) => {
       createConversationResponseMutate({
         content: text,
         roomId: variables.roomId,
-        userId: 9999,
+        isUser: variables.isUser,
       });
     },
   });
