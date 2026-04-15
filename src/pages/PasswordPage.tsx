@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { supabase } from "../utils/supabase";
 import { decryptJSON, encryptJSON } from "../utils/encrypt";
+import Button from "../components/common/button/Button";
+import { seedDummyResumesToDB } from "../utils/seedDummyResumesToDB";
 
 const PasswordPage = () => {
   const [password, setPassword] = useState("");
@@ -81,6 +83,7 @@ const PasswordPage = () => {
             <ErrorMessage>비밀번호가 일치하지 않습니다.</ErrorMessage>
           )}
           <SubmitButton type="submit">입장하기</SubmitButton>
+          <Button onClick={() => seedDummyResumesToDB()}>123</Button>
         </Form>
       </Card>
     </Container>

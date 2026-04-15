@@ -4,7 +4,7 @@ const fetchRooms = async (userId) => {
   if (!userId) return [];
 
   const { data, error } = await supabase
-    .from("Rooms")
+    .from("rooms")
     .select("*")
     .eq("userid", userId)
     .order("created_at", { ascending: false });
@@ -15,7 +15,7 @@ const fetchRooms = async (userId) => {
 
 const createRooms = async ({ name, userId }) => {
   const { data, error } = await supabase
-    .from("Rooms")
+    .from("rooms")
     .insert({ name: name, userid: userId })
     .select("*")
     .single();

@@ -10,6 +10,15 @@ const CHAT_TYPE_MESSAGES = (message: string) => [
   { role: "user", content: message },
 ];
 
+export const CHAT_TYPE_PROMPT = (message: string) => `
+당신은 질문 의도를 분류하는 라우터 AI입니다. 
+   [절대 규칙] 어떠한 태그(<think> 등)나 부가 설명 없이 오직 JSON만 출력하세요.
+   검색은 {"type": "search"}, 일반 대화는 {"type": "chat"} 입니다.
+   
+   Input: ${message}
+   Output
+`;
+
 const CHAT_WITH_SUPABASE_SYSTEM_PROMPT = `
 You are an expert HR Assistant. Your task is to evaluate candidate data based on the user's query and output a strict JSON format.
 

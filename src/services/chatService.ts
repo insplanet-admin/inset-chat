@@ -24,16 +24,18 @@ const postChatToType = async ({
 }: PostChatParams): Promise<ChatIntent> => {
   try {
     const content = await askOllama(
-      import.meta.env.VITE_LLAMA_TEXT_MODEL,
+      import.meta.env.VITE_LLAMA_TYPE_MODEL,
       CHAT_TYPE_MESSAGES(message),
       false,
       { format: "json" },
     );
+    console.log(content);
     try {
       const parsedData = JSON.parse(content);
       console.log(parsedData);
       return parsedData.type === "search" ? "search" : "chat";
-    } catch {
+    } catch (error) {
+      console.error("json parse:", error);
       return "chat";
     }
   } catch (error) {
@@ -164,9 +166,10 @@ const postChatWithSupabase = async ({
           CHAT_WITH_SUPABASE_MESSAGES(message, singleCandidateJson),
           true,
           {
-            num_ctx: 8196,
+            num_ctx: 8192,
             temperature: 0.1,
             stop: ["<|endoftext|>", "<|im_start|>", "<|im_end|>", "Question:"],
+            format: "json",
           },
         );
 
