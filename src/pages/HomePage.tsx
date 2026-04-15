@@ -8,6 +8,7 @@ import {
   useStartConversation,
   useConversationMessage,
   useConversationResponse,
+  useResumeUpload,
 } from "../hooks/queries";
 import { getUser } from "../utils/getUser";
 import { useChatSubmit } from "../hooks/useChatSubmit";
@@ -23,6 +24,7 @@ const HomePage = () => {
   const conversation = useStartConversation();
   const message = useConversationMessage();
   const response = useConversationResponse(message.mutate);
+  const resumeUpload = useResumeUpload();
 
   const { prompt, handleChange, handleKeyDown, handleSubmit, handleFileDrop } =
     useChatSubmit({
@@ -31,6 +33,7 @@ const HomePage = () => {
       conversation,
       message,
       response,
+      resumeUpload,
     });
 
   return (

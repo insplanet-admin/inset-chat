@@ -14,6 +14,7 @@ import { useIsMutating } from "@tanstack/react-query";
 import {
   useConversationResponse,
   useConversationMessage,
+  useResumeUpload,
 } from "../hooks/queries";
 import { useChatSubmit } from "../hooks/useChatSubmit";
 import { getUser } from "../utils/getUser";
@@ -30,6 +31,7 @@ const ConversationPage = () => {
   const { conversation } = useConversation(roomID);
   const message = useConversationMessage();
   const response = useConversationResponse(message.mutate);
+  const resumeUpload = useResumeUpload(roomID);
 
   const { prompt, handleChange, handleKeyDown, handleSubmit, handleFileDrop } =
     useChatSubmit({
@@ -38,6 +40,7 @@ const ConversationPage = () => {
       conversation: conversation,
       message,
       response,
+      resumeUpload,
     });
 
   // 메시지가 추가될 때마다 스크롤이 가장 아래로 이동하도록 설정

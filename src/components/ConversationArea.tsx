@@ -9,10 +9,9 @@ const getCandidatesArray = (content: unknown) => {
 
   const trimmed = content.trim();
 
-  if (trimmed.startsWith("[") || trimmed.startsWith("```json")) {
+  if (trimmed.startsWith("[")) {
     try {
-      const cleaned = trimmed.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(cleaned);
+      const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) {
         return parsed;
       }

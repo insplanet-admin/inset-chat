@@ -1,3 +1,5 @@
+// 삭제 해도 될듯
+
 import { SyncLoader } from "react-spinners";
 import { AIChatBubble, MyChatBubble } from "./domain/ChatBubble";
 import { CandidateCard } from "./CandidateCard";

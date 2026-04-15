@@ -41,16 +41,17 @@ const postChatToType = async ({
   message,
 }: PostChatParams): Promise<ChatIntent> => {
   try {
-    const content = await askGemini(
-      import.meta.env.VITE_GEMINI_FLASH_MODEL,
+    const content = await askOllama(
+      import.meta.env.VITE_LLAMA_TEXT_MODEL,
       CHAT_TYPE_MESSAGES(message),
       false,
       { format: "json" },
     );
+    console.log(content);
     try {
       const parsedData = JSON.parse(content);
       return parsedData.type === "search" ? "search" : "chat";
-    } catch {
+    } catch (error) {
       return "chat";
     }
   } catch (error) {

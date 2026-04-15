@@ -1,6 +1,8 @@
 import { useState, useCallback, ChangeEvent, KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { nanoid } from "nanoid";
+import { useQueryClient } from "@tanstack/react-query";
+import { parseAndSaveResume } from "../services/resumeService";
 
 // 필요한 인터페이스 정의 (프로젝트 상황에 맞게 조정하세요)
 interface UseChatSubmitProps {
@@ -9,6 +11,7 @@ interface UseChatSubmitProps {
   conversation: any; // useStartConversation의 결과 타입
   message: any; // useConversationMessage의 결과 타입
   response: any; // useConversationResponse의 결과 타입
+  resumeUpload: any;
 }
 
 export const useChatSubmit = ({
@@ -17,6 +20,7 @@ export const useChatSubmit = ({
   conversation,
   message,
   response,
+  resumeUpload,
 }: UseChatSubmitProps) => {
   const [prompt, setPrompt] = useState("");
   const navigate = useNavigate();
@@ -81,8 +85,10 @@ export const useChatSubmit = ({
     [handleSubmit],
   );
 
-  const handleFileDrop = useCallback(() => {
-    console.log("handleFileDrop");
+  const handleFileDrop = useCallback(async (file: File) => {
+    console.log("handleFileDrop", file.name);
+
+    resumeUpload.mutate(file);
   }, []);
 
   return {

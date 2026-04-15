@@ -5,6 +5,7 @@ import {
   createConversationMessage,
 } from "../apis/conversation";
 import { postChat } from "../services/chatService";
+import { parseAndSaveResume } from "../services/resumeService";
 
 interface Message {
   id: string;
@@ -142,8 +143,27 @@ const useConversationResponse = (createConversationResponseMutate: any) => {
   });
 };
 
+const useResumeUpload = (roomID?: string) => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => parseAndSaveResume(file),
+    onSuccess: (savedData) => {
+      console.log("이력서 파싱 및 저장 완료:", savedData);
+      if (roomID) {
+        qc.invalidateQueries({ queryKey: ["conversation", roomID] });
+      }
+    },
+    onError: (error) => {
+      console.error("이력서 처리 중 오류 발생:", error);
+      alert("파일을 처리하는 중 오류가 발생했습니다.");
+    },
+  });
+};
+
 export {
   useStartConversation,
   useConversationMessage,
   useConversationResponse,
+  useResumeUpload,
 };

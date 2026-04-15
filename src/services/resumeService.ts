@@ -2,32 +2,28 @@ import { supabase } from "../utils/supabase";
 import { encryptJSON } from "../utils/encrypt";
 import { askOllama, getEmbedding } from "../apis/ollama";
 import { extractTextFromFile } from "../utils/fileParser";
-import { RESUME_PARSER_PROMPT } from "../constants/resumePrompt";
-import { askGemini } from "../apis/gemini";
+import { RESUME_PARSER_MESSAGES } from "../constants/resumePrompt";
 
 const parseAndSaveResume = async (file: File) => {
   try {
     const extractedText = await extractTextFromFile(file);
+    console.log(extractedText);
     if (!extractedText)
       throw new Error("파일에서 텍스트를 추출할 수 없습니다.");
 
-    const messages = [
-      {
-        role: "system",
-        content: "You are a strict Resume Parser. Output ONLY valid JSON.",
-      },
-      {
-        role: "user",
-        content: `${RESUME_PARSER_PROMPT}\n\n[Resume Content]\n${extractedText}`,
-      },
-    ];
-
-    const rawResponse = await askGemini(
-      import.meta.env.VITE_GEMINI_FLASH_MODEL,
-      messages,
+    const rawResponse = await askOllama(
+      import.meta.env.VITE_LLAMA_TEXT_MODEL,
+      RESUME_PARSER_MESSAGES(extractedText),
       true,
-      { format: "json" },
+      {
+        num_ctx: 8192,
+        temperature: 0.1,
+        stop: ["<|endoftext|>", "<|im_start|>", "<|im_end|>", "Question:"],
+        format: "json",
+      },
     );
+
+    console.log(rawResponse);
 
     const startIndex = rawResponse.indexOf("{");
     const lastIndex = rawResponse.lastIndexOf("}");

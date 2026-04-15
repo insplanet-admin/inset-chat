@@ -10,7 +10,6 @@ interface ImportMetaEnv {
   readonly VITE_GEMINI_PRO_MODEL: string;
   readonly VITE_LLAMA_TEXT_MODEL: string;
   readonly VITE_LLAMA_EMBEDDING_MODEL: string;
-  readonly VITE_LLAMA_TYPE_MODEL: string;
   readonly VITE_SECRET_KEY: string;
 }
 
