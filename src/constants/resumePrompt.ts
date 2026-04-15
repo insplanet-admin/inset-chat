@@ -1,3 +1,4 @@
+// 수정 필요.
 const RESUME_JSON_SCHEMA = {
   personal_info: {
     name: "임재혁",

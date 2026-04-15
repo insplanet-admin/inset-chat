@@ -1,3 +1,4 @@
+// 사용하지 않을 예정.
 import { GoogleGenAI } from "@google/genai";
 
 const genAI = new GoogleGenAI({

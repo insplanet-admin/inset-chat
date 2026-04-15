@@ -1,36 +1,10 @@
 import { supabase } from "../utils/supabase";
 
-// export async function fetchDevMessages() {
-//   const { data, error } = await supabase.from("dev").select("*");
-
-//   if (error) throw error;
-//   return data;
-// }
-
-// export async function insertDevMessages({ role, content, status }) {
-//   const { data, error } = await supabase
-//     .from("dev")
-//     .insert({ role, content, status })
-//     .select("*")
-//     .single();
-
-//   if (error) {
-//     console.log("SUPABASE INSERT ERROR:", error);
-//     throw error;
-//   }
-//   return data; // 새로 만들어진 room row
-// }
-
-// fetchConversations();
-// createConversationMessage();
-// createConversationResponse();
-// startConversationWithResponse
-
 const fetchConversations = async (userId: any) => {
   if (!userId) return [];
 
   const { data, error } = await supabase
-    .from("Rooms")
+    .from("rooms")
     .select("*")
     .eq("userid", userId)
     .order("created_at", { ascending: false });
@@ -41,7 +15,7 @@ const fetchConversations = async (userId: any) => {
 
 const startConversation = async ({ name, userId }: any) => {
   const { data, error } = await supabase
-    .from("Rooms")
+    .from("rooms")
     .insert({ name: name, userid: userId })
     .select("*")
     .single();
@@ -50,9 +24,11 @@ const startConversation = async ({ name, userId }: any) => {
   return data; // 새로 만들어진 room row
 };
 
+// conversations 모두를 get 해오는 관점에서
+// fetchConversations 가 더 어울리지 않나 싶습니다.
 async function fetchConversation(roomId: any) {
   const { data, error } = await supabase
-    .from("messages")
+    .from("messages") // supabase 테이블 명도 변경 고민. conversation
     .select("*")
     .eq("room_id", roomId)
     .order("created_at", { ascending: true });
@@ -64,7 +40,7 @@ async function fetchConversation(roomId: any) {
   return data;
 }
 
-// Message / Response 둘 다 insert?
+// insert conversation / 추가 후 데이터 가져오기.
 async function createConversationMessage({
   content,
   userId = 1004,

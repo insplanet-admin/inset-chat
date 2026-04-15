@@ -87,17 +87,17 @@ const useConversationMessage = () => {
   return useMutation({
     mutationFn: createConversationMessage,
     onMutate: async (variables) => {
-      const { roomId, content } = variables;
-      await qc.cancelQueries({ queryKey: ["roomMessages", roomId] });
-      const previousMessages = qc.getQueryData(["roomMessages", roomId]);
+      const { roomId, content, userId } = variables;
+      await qc.cancelQueries({ queryKey: ["conversation", roomId] });
+      const previousMessages = qc.getQueryData(["conversation", roomId]);
 
       // pending을 빼더라도 넣어야하는 이유. -> 말풍선을 먼저 그려줘야하기떄문.
-      qc.setQueryData<Message[]>(["roomMessages", roomId], (old) => [
+      qc.setQueryData<Message[]>(["conversation", roomId], (old) => [
         ...(old || []),
         {
           id: nanoid(),
           content: content,
-          user_id: 1004,
+          user_id: userId || 1004,
           status: "pending",
         },
       ]);
@@ -106,12 +106,12 @@ const useConversationMessage = () => {
     },
     onError: (err, variables, context) => {
       qc.setQueryData(
-        ["roomMessages", context?.roomId],
+        ["conversation", context?.roomId],
         context?.previousMessages,
       );
     },
     onSettled: (data, error, variables) => {
-      qc.invalidateQueries({ queryKey: ["roomMessages", variables.roomId] });
+      qc.invalidateQueries({ queryKey: ["conversation", variables.roomId] });
     },
   });
 };
@@ -126,7 +126,7 @@ const useConversationResponse = (createConversationResponseMutate: any) => {
       const text = data?.text ?? "";
 
       if (!text) {
-        qc.setQueryData<Message[]>(["roomMessages", variables.roomId], (old) =>
+        qc.setQueryData<Message[]>(["conversation", variables.roomId], (old) =>
           old?.filter((m) => m.id !== variables.id),
         );
         return;

@@ -6,69 +6,70 @@ import { supabase } from "./supabase";
 const dummyResumes = [
   {
     personal_info: {
-      name: "최안드",
-      email: "android@example.com",
-      phone: "010-1357-2468",
-      birth_date: "1994-08-15",
+      name: "김백엔",
+      email: "backend@example.com",
+      phone: "010-1111-2222",
+      birth_date: "1992-03-15",
       gender: "남",
-      address: "서울시 금천구",
+      address: "서울시 송파구",
       profile_image_url: "",
     },
     professional_summary: {
       job_category: "개발",
-      current_role: "안드로이드 개발자",
-      total_experience_months: 48,
-      skill_grade: "중급",
-      major_achievement: "모바일 금융 앱 Kotlin 100% 마이그레이션",
+      current_role: "백엔드 개발자",
+      total_experience_months: 84,
+      skill_grade: "고급",
+      major_achievement: "대규모 트래픽 결제 시스템 MSA 전환",
       core_competencies: [
-        "Kotlin 및 Jetpack Compose 기반 UI 개발",
-        "Coroutines를 활용한 비동기 처리 및 Clean Architecture 적용",
+        "Java/Spring Boot 기반 대규모 시스템 설계",
+        "MSA 아키텍처 및 도커/쿠버네티스 운영",
       ],
       introduction:
-        "안정적이고 유려한 모바일 경험을 제공하는 4년 차 안드로이드 네이티브 개발자입니다.",
+        "안정적이고 확장 가능한 백엔드 시스템을 설계하는 7년 차 백엔드 개발자입니다.",
     },
     evaluation: {
-      internal_rating: 4.3,
+      internal_rating: 4.5,
       one_line_review:
-        "최신 안드로이드 기술 스택(Compose, Coroutines)에 대한 이해도가 높고 클린 코드 작성을 지향함.",
+        "대규모 트래픽 처리 경험이 풍부하며 백엔드 아키텍처 설계 능력이 뛰어남.",
     },
     skills: [
       {
-        skill_name: "Kotlin / Jetpack Compose",
+        skill_name: "Java / Spring Boot",
         proficiency_level: "상",
-        notes: "MVVM 및 Clean Architecture",
+        notes: "실무 7년",
       },
     ],
     work_experiences: [
       {
-        start_date: "2020-03",
-        end_date: "2024-03",
-        company_name: "핀테크모바일",
-        department: "앱개발팀",
-        job_title: "대리",
-        responsibilities: "송금 및 결제 도메인 안드로이드 앱 개발",
+        start_date: "2017-03",
+        end_date: "2024-02",
+        company_name: "페이먼트(주)",
+        department: "결제개발팀",
+        job_title: "선임",
+        responsibilities: "결제 코어 API 개발",
       },
     ],
     projects: [
       {
         start_date: "2022-01",
-        end_date: "2022-10",
-        project_name: "기존 Java 레거시 앱 Kotlin 전환",
+        end_date: "2023-12",
+        project_name: "차세대 결제 시스템 구축",
         client_company: "자사",
-        role_and_tasks: "주요 화면 Compose 전환 및 구조 개선",
+        role_and_tasks: "MSA 전환 리딩",
       },
     ],
     educations: [
       {
-        start_date: "2013-03",
-        end_date: "2019-02",
-        school_name: "광운대학교",
-        major: "소프트웨어학부",
+        start_date: "2011-03",
+        end_date: "2017-02",
+        school_name: "서울대학교",
+        major: "컴퓨터공학과",
         graduation_status: "졸업",
       },
     ],
   },
 ];
+
 // 2. 임베딩 + 암호화 + DB 일괄 삽입 함수
 const seedDummyResumesToDB = async () => {
   console.log("더미 데이터 DB 삽입 시작...");

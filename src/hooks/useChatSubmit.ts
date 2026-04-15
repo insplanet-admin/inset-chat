@@ -47,6 +47,7 @@ export const useChatSubmit = ({
         message.mutate({
           content: trimmedPrompt,
           roomId: currentRoomId,
+          userId: 1004,
         });
 
         // 4. AI 답변 요청
@@ -54,6 +55,7 @@ export const useChatSubmit = ({
           message: trimmedPrompt,
           id: nanoid(),
           roomId: currentRoomId || "",
+          userId: 9999,
         });
 
         // 5. 새 방이었다면 해당 경로로 이동

@@ -27,7 +27,7 @@ const ConversationPage = () => {
   const { candidateId } = useParams();
   const isCandidatePanelOpen = !!candidateId;
 
-  const conversation = useConversation(roomID);
+  const { conversation } = useConversation(roomID);
   const message = useConversationMessage();
   const response = useConversationResponse(message.mutate);
 
@@ -80,7 +80,7 @@ const ConversationPage = () => {
                 room id
               </div>
             </FixedTop>
-            <ConversationArea messages={messages} isAITyping={isAITyping} />
+            <ConversationArea messages={conversation} isAITyping={isAITyping} />
           </ContentInner>
         </ScrollBody>
         <FixedBottom>
