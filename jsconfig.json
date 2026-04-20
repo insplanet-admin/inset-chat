@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "target": "ESNext",
+    "jsx": "react-jsx", // React를 사용 중이라면 추가
+    "checkJs": true,
+    "allowJs": true
+  },
+  "include": ["src/**/*", "vite-env.d.ts"]
+}

@@ -1,0 +1,254 @@
+import styled from "styled-components";
+import Text from "./common/text/Text";
+import Icon from "./common/Icon/Icon";
+
+const renderStars = (rating) => {
+  if (!rating) return "-";
+  const fullStars = "★".repeat(Math.floor(rating));
+  const emptyStars = "☆".repeat(5 - Math.floor(rating));
+  return fullStars + emptyStars;
+};
+
+const CandidateCard = ({ data, onClick }) => {
+  if (!data || !data.basic_info) return null;
+
+  const currentYear = 2026;
+  const age = currentYear - data.basic_info.birth_year;
+
+  return (
+    <Card onClick={onClick}>
+      <Header>
+        <ProfileImage>
+          <img src={data.profile_image} alt={data.name} />
+        </ProfileImage>
+
+        <UserInfo>
+          <NameWrapper>
+            <Text variant="bodyLg">{data.name}</Text>
+            {data.details?.internal_rating >= 4.0 && (
+              <Badge bgColor="#F6F2FE" textColor="#8337ED">
+                ✓ BEST
+              </Badge>
+            )}
+            {data.is_kosa_verified && (
+              <Badge bgColor="#D6F9FA" textColor="#00838A">
+                코사증빙
+              </Badge>
+            )}
+          </NameWrapper>
+
+          <MetaInfo>
+            <span className="category">{data.basic_info.category}</span>
+            {" · "}
+            {data.basic_info.experience_total}
+            {" · "}
+            {data.basic_info.birth_year}년생 (만 {age}세)
+          </MetaInfo>
+        </UserInfo>
+
+        <Icon name="Star" color="#878A92" />
+      </Header>
+
+      <Divider />
+
+      <DetailList>
+        <DetailRow>
+          <Text variant="labelSm" color="#878a92">
+            최종학력
+          </Text>
+          <Value>{data.details?.final_education || "-"}</Value>
+        </DetailRow>
+
+        <DetailRow>
+          <Text variant="labelSm" color="#878a92">
+            보유자격
+          </Text>
+          <Value>
+            {data.details?.qualifications?.length > 0
+              ? data.details.qualifications.join(", ")
+              : "-"}
+          </Value>
+        </DetailRow>
+
+        <DetailRow>
+          <Text variant="labelSm" color="#878a92">
+            경력사항
+          </Text>
+          <Value className="truncate">
+            {data.details?.major_experience || "-"}
+          </Value>
+        </DetailRow>
+
+        <DetailRow>
+          <Text variant="labelSm" color="#878a92">
+            보유기술
+          </Text>
+          <SkillContainer>
+            {data.details?.skills?.slice(0, 3).map((skill, idx) => (
+              <SkillTag key={idx}>{skill}</SkillTag>
+            ))}
+            {data.details?.skills?.length > 3 && <SkillTag>...</SkillTag>}
+          </SkillContainer>
+        </DetailRow>
+
+        <DetailRow>
+          <Text variant="labelSm" color="#878a92">
+            내부평가
+          </Text>
+          <Value className="rating">
+            {renderStars(data.details?.internal_rating)}
+          </Value>
+        </DetailRow>
+      </DetailList>
+
+      <IntroBox>
+        <Intro>{data.introduction || "소개글이 없습니다."}</Intro>
+      </IntroBox>
+    </Card>
+  );
+};
+
+const Card = styled.div`
+  // width: 360px;
+  // TODO 왜 3.5이지 일단 패스
+  width: calc(50% - 3.5rem);
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: sans-serif;
+  position: relative;
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+`;
+
+const ProfileImage = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const UserInfo = styled.div`
+  flex: 1;
+  overflow: hidden;
+`;
+
+const NameWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+`;
+
+const Badge = styled.span<{ bgColor?: string; textColor?: string }>`
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background-color: ${({ bgColor }) => bgColor || "#eee"};
+  color: ${({ textColor }) => textColor || "#333"};
+  white-space: nowrap;
+`;
+
+const MetaInfo = styled.div`
+  font-size: 12px;
+  color: #6d7178;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .category {
+    color: #00838a;
+    font-weight: bold;
+  }
+`;
+
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid #f0f0f0;
+  margin-bottom: 20px;
+`;
+
+const DetailList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+  margin-bottom: 20px;
+`;
+
+const DetailRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+const Value = styled.span`
+  flex: 1;
+  color: #222;
+  font-weight: 500;
+  min-width: 0;
+  font-size: 14px;
+
+  &.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &.rating {
+    font-size: 16px;
+    color: #444;
+    letter-spacing: 2px;
+  }
+`;
+
+const SkillContainer = styled.div`
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+`;
+
+const SkillTag = styled.span`
+  background-color: #f1f2f4;
+  color: #444;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+`;
+
+const IntroBox = styled.div`
+  background-color: #f1f2f4;
+  padding: 16px;
+  border-radius: 16px;
+`;
+
+const Intro = styled.p`
+  font-size: 12px;
+  color: #333;
+  line-height: 1.5;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  overflow: hidden;
+  margin: 0;
+`;
+
+export { CandidateCard };

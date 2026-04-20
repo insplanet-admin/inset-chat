@@ -1,0 +1,126 @@
+const OLLAMA_URL = "http://192.168.68.130:11434";
+
+const getEmbedding = async (text: string): Promise<number[]> => {
+  const response = await fetch(`${OLLAMA_URL}/api/embeddings`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: import.meta.env.VITE_LLAMA_EMBEDDING_MODEL,
+      prompt: text,
+      keep_alive: -1,
+    }),
+  });
+
+  if (!response.ok)
+    throw new Error(`Ollama Embedding Error: ${response.status}`);
+  const result = await response.json();
+  return result.embedding;
+};
+
+const askOllama = async (
+  model: string,
+  messages: any[],
+  stream = true,
+  options?: any,
+): Promise<string> => {
+  const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model, messages, stream, options, keep_alive: -1 }),
+  });
+
+  if (!response.ok) throw new Error(`Ollama Error: ${response.status}`);
+
+  if (!stream) {
+    const result = await response.json();
+    console.log(result);
+    return result.message.content;
+  }
+
+  if (!response.body) throw new Error("응답 Body가 없습니다.");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+  let rawResponse = "";
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    let lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (line.trim() === "") continue;
+      try {
+        const parsedChunk = JSON.parse(line);
+        if (parsedChunk.message?.content) {
+          rawResponse += parsedChunk.message.content;
+          console.log(`[실시간]: ${parsedChunk.message?.content}`);
+        }
+      } catch (e) {
+        console.error("청크 파싱 에러:", e);
+      }
+    }
+  }
+  return rawResponse;
+};
+
+export const askOllamaGenerate = async (
+  model: string,
+  prompt: string,
+  stream = false,
+  additionalConfig?: any,
+): Promise<string> => {
+  const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      prompt,
+      stream,
+      ...additionalConfig,
+    }),
+  });
+
+  if (!response.ok) throw new Error(`Ollama Error: ${response.status}`);
+
+  if (!stream) {
+    const result = await response.json();
+    console.log("[Generate 비스트림 응답]:", result);
+    return result.response;
+  }
+
+  if (!response.body) throw new Error("응답 Body가 없습니다.");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+  let rawResponse = "";
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    let lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (line.trim() === "") continue;
+      try {
+        const parsedChunk = JSON.parse(line);
+        if (parsedChunk.response) {
+          rawResponse += parsedChunk.response;
+          console.log(`[Generate 실시간]: ${parsedChunk.response}`);
+        }
+      } catch (e) {
+        console.error("청크 파싱 에러:", e);
+      }
+    }
+  }
+
+  return rawResponse;
+};
+
+export { getEmbedding, askOllama };

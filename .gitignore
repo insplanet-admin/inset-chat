@@ -33,6 +33,13 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
 # Build results on 'Bin' directories
 **/[Bb]in/*
 # Uncomment if you have tasks that rely on *.refresh files to move binaries

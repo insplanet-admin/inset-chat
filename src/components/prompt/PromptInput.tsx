@@ -1,51 +1,32 @@
 import { ArrowBigUp, Plus } from "lucide-react";
 import Row from "../Row";
+import DragDropWrapper from "../DragDropWrapper";
 
 interface Props {
   value: string;
-  setMessage: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  setPrompt: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLFormElement>) => void;
+  onFileDrop: (file: File) => void;
 }
 
-const PromptInput = ({ value, setMessage, onSubmit, onKeyDown }: Props) => {
+const PromptInput = ({
+  value,
+  setPrompt,
+  onSubmit,
+  onKeyDown,
+  onFileDrop,
+}: Props) => {
   return (
-    <div className="promptInputContainer">
-      <Suggestions>
-        {[
-          "신한은행 파견 근무를 위한 퍼블리셔는 어떤 역량이 필요해?",
-          "오늘 서울 날씨 어때?",
-          "센트럴에쓰 근처의 점심 식당 추천해줘.",
-        ].map((suggestion) => (
-          <Suggestion key={suggestion}>{suggestion}</Suggestion>
-        ))}
-      </Suggestions>
+    <DragDropWrapper onFileDrop={onFileDrop}>
       <form className="promptInput" onSubmit={onSubmit} onKeyDown={onKeyDown}>
-        <PromptInputTextarea value={value} setMessage={setMessage} />
+        <PromptInputTextarea value={value} setMessage={setPrompt} />
         <Row justify="space-between">
           <PromptInputTools />
           <PromptSubmitButton />
         </Row>
       </form>
-    </div>
-  );
-};
-
-const Suggestions = ({ children }: { children: React.ReactNode }) => {
-  return <div className="suggestions">{children}</div>;
-};
-
-const Suggestion = ({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-}) => {
-  return (
-    <button className="suggestion" onClick={onClick}>
-      {children}
-    </button>
+    </DragDropWrapper>
   );
 };
 
